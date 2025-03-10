@@ -23,7 +23,7 @@ thiserror = { version = "2", default-features = false }
 serde = { version = "1.0", features = ["derive"], optional = true }
 
 [dev-dependencies]
-bincode = "1"
+bincode = "2"
 serde_json = "1"
 
 [package.metadata.docs.rs]
