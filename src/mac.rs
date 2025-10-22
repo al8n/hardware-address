@@ -157,7 +157,9 @@ mod tests {
     assert_eq!(json, [0, 0, 94, 0, 83, 1]);
     assert_eq!(addr.octets(), [0, 0, 94, 0, 83, 1]);
 
-    let addr2: MacAddr = bincode::serde::decode_from_slice(&json, bincode::config::standard()).unwrap().0;
+    let addr2: MacAddr = bincode::serde::decode_from_slice(&json, bincode::config::standard())
+      .unwrap()
+      .0;
     assert_eq!(addr, addr2);
 
     let addr3 = MacAddr::new([0, 0, 94, 0, 83, 1]);

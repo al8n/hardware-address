@@ -157,7 +157,10 @@ mod tests {
     );
     assert_eq!(addr.octets(), encoded.as_slice());
 
-    let addr2: InfiniBandAddr = bincode::serde::decode_from_slice(&encoded, bincode::config::standard()).unwrap().0;
+    let addr2: InfiniBandAddr =
+      bincode::serde::decode_from_slice(&encoded, bincode::config::standard())
+        .unwrap()
+        .0;
     assert_eq!(addr, addr2);
     let addr3 = InfiniBandAddr::new([
       0x00, 0x00, 0x00, 0x00, 0xfe, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x5e,

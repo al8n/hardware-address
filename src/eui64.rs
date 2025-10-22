@@ -150,7 +150,9 @@ mod tests {
     assert_eq!(encoded, [2, 0, 94, 16, 0, 0, 0, 1]);
     assert_eq!(addr.octets(), [2, 0, 94, 16, 0, 0, 0, 1]);
 
-    let addr2: Eui64Addr = bincode::serde::decode_from_slice(&encoded, bincode::config::standard()).unwrap().0;
+    let addr2: Eui64Addr = bincode::serde::decode_from_slice(&encoded, bincode::config::standard())
+      .unwrap()
+      .0;
     assert_eq!(addr, addr2);
 
     let addr3 = Eui64Addr::from([2, 0, 94, 16, 0, 0, 0, 1]);
