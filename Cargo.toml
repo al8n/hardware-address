@@ -20,7 +20,7 @@ std = ["thiserror/default"]
 paste = "1"
 thiserror = { version = "2", default-features = false }
 
-serde = { version = "1.0", features = ["derive"], optional = true }
+serde = { version = "1.0", features = ["derive"], default-features = false, optional = true }
 
 [dev-dependencies]
 bincode = "1"
