@@ -1,8 +1,8 @@
-const EUI64_ADDRESS_SIZE: usize = 8;
+
 
 addr_ty!(
   /// Represents a physical EUI-64 format address.
-  Eui64Addr[EUI64_ADDRESS_SIZE]
+  Eui64Addr[8]
 );
 
 #[cfg(test)]
@@ -11,6 +11,8 @@ mod tests {
   use crate::{ParseError, TestCase};
 
   use std::{string::ToString, vec, vec::Vec};
+
+  const EUI64_ADDRESS_SIZE: usize = 8;
 
   fn test_cases() -> Vec<TestCase<EUI64_ADDRESS_SIZE>> {
     vec![
@@ -121,11 +123,11 @@ mod tests {
     let addr = Eui64Addr::try_from("02:00:5e:10:00:00:00:01").unwrap();
     assert_eq!(addr.to_string(), "02:00:5e:10:00:00:00:01");
 
-    let dot = addr.to_dot_seperated_array();
+    let dot = addr.to_dot_separated_array();
     let dot_str = core::str::from_utf8(&dot).unwrap();
     assert_eq!(dot_str, "0200.5e10.0000.0001");
 
-    let dashed = addr.to_hyphen_seperated_array();
+    let dashed = addr.to_hyphen_separated_array();
     let dashed_str = core::str::from_utf8(&dashed).unwrap();
     assert_eq!(dashed_str, "02-00-5e-10-00-00-00-01");
   }

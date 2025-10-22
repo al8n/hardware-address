@@ -1,8 +1,9 @@
-const INFINI_BAND_ADDRESS_SIZE: usize = 20;
+
+
 
 addr_ty!(
   /// Represents a physical 20-octet InfiniBand format address.
-  InfiniBandAddr[INFINI_BAND_ADDRESS_SIZE]
+  InfiniBandAddr[20]
 );
 
 #[cfg(test)]
@@ -11,6 +12,8 @@ mod tests {
   use crate::TestCase;
 
   use std::{string::ToString, vec, vec::Vec};
+
+  const INFINI_BAND_ADDRESS_SIZE: usize = 20;
 
   fn test_cases() -> Vec<TestCase<INFINI_BAND_ADDRESS_SIZE>> {
     vec![
@@ -112,11 +115,11 @@ mod tests {
       "00:00:00:00:fe:80:00:00:00:00:00:00:02:00:5e:10:00:00:00:01"
     );
 
-    let dot = addr.to_dot_seperated_array();
+    let dot = addr.to_dot_separated_array();
     let dot_str = core::str::from_utf8(&dot).unwrap();
     assert_eq!(dot_str, "0000.0000.fe80.0000.0000.0000.0200.5e10.0000.0001");
 
-    let dashed = addr.to_hyphen_seperated_array();
+    let dashed = addr.to_hyphen_separated_array();
     let dashed_str = core::str::from_utf8(&dashed).unwrap();
     assert_eq!(
       dashed_str,
@@ -161,7 +164,7 @@ mod tests {
         .unwrap()
         .0;
     assert_eq!(addr, addr2);
-    let addr3 = InfiniBandAddr::new([
+    let addr3 = InfiniBandAddr::from_array([
       0x00, 0x00, 0x00, 0x00, 0xfe, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x5e,
       0x10, 0x00, 0x00, 0x00, 0x01,
     ]);

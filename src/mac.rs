@@ -1,9 +1,7 @@
-const MAC_ADDRESS_SIZE: usize = 6;
-
 addr_ty!(
   /// Represents a physical hardware address (MAC address).
   #[doc(alias = "Eui48Addr")]
-  MacAddr[MAC_ADDRESS_SIZE]
+  MacAddr[6]
 );
 
 #[cfg(test)]
@@ -12,6 +10,8 @@ mod tests {
   use crate::{ParseError, TestCase};
 
   use std::{string::ToString, vec, vec::Vec};
+
+  const MAC_ADDRESS_SIZE: usize = 6;
 
   fn test_cases() -> Vec<TestCase<MAC_ADDRESS_SIZE>> {
     vec![
@@ -128,11 +128,11 @@ mod tests {
     let addr = MacAddr::try_from("00:00:5e:00:53:01").unwrap();
     assert_eq!(addr.to_string(), "00:00:5e:00:53:01");
 
-    let dot = addr.to_dot_seperated_array();
+    let dot = addr.to_dot_separated_array();
     let dot_str = core::str::from_utf8(&dot).unwrap();
     assert_eq!(dot_str, "0000.5e00.5301");
 
-    let dashed = addr.to_hyphen_seperated_array();
+    let dashed = addr.to_hyphen_separated_array();
     let dashed_str = core::str::from_utf8(&dashed).unwrap();
     assert_eq!(dashed_str, "00-00-5e-00-53-01");
   }
@@ -161,7 +161,7 @@ mod tests {
       .0;
     assert_eq!(addr, addr2);
 
-    let addr3 = MacAddr::new([0, 0, 94, 0, 83, 1]);
+    let addr3 = MacAddr::from_array([0, 0, 94, 0, 83, 1]);
     assert_eq!(addr, addr3);
 
     println!("{:?}", addr);
