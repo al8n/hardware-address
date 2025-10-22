@@ -3,7 +3,6 @@ const MAC_ADDRESS_SIZE: usize = 6;
 addr_ty!(
   /// Represents a physical hardware address (MAC address).
   #[doc(alias = "Eui48Addr")]
-  #[derive(Eq, PartialEq, Ord, PartialOrd, Hash)]
   MacAddr[MAC_ADDRESS_SIZE]
 );
 
@@ -73,8 +72,8 @@ mod tests {
       match (result, &test.output) {
         (Ok(out), Some(expected)) => {
           assert_eq!(
-            out.as_ref(),
             expected.as_slice(),
+            out,
             "Test case {}: MacAddr::parse({}) output mismatch",
             i,
             test.input

@@ -2,7 +2,6 @@ const EUI64_ADDRESS_SIZE: usize = 8;
 
 addr_ty!(
   /// Represents a physical EUI-64 format address.
-  #[derive(Eq, PartialEq, Ord, PartialOrd, Hash)]
   Eui64Addr[EUI64_ADDRESS_SIZE]
 );
 

@@ -2,7 +2,6 @@ const INFINI_BAND_ADDRESS_SIZE: usize = 20;
 
 addr_ty!(
   /// Represents a physical 20-octet InfiniBand format address.
-  #[derive(Eq, PartialEq, Ord, PartialOrd, Hash)]
   InfiniBandAddr[INFINI_BAND_ADDRESS_SIZE]
 );
 

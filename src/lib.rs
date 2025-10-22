@@ -27,10 +27,7 @@ macro_rules! addr_ty {
     }
 
     $(#[$attr])*
-    #[derive(
-      ::core::clone::Clone,
-      ::core::marker::Copy,
-    )]
+    #[derive(::core::clone::Clone, ::core::marker::Copy, ::core::cmp::Eq, ::core::cmp::PartialEq, ::core::cmp::Ord, ::core::cmp::PartialOrd, ::core::hash::Hash)]
     #[repr(transparent)]
     pub struct $name([u8; $n]);
 
