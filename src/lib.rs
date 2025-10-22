@@ -34,146 +34,200 @@ macro_rules! addr_ty {
     #[repr(transparent)]
     pub struct $name([u8; $n]);
 
-    impl ::core::str::FromStr for $name {
-      type Err = $crate::__private::paste::paste! { [< Parse $name Error >] };
-
-      #[inline]
-      fn from_str(src: &str) -> Result<Self, Self::Err> {
-        $crate::parse::<$n>(src).map(Self)
-      }
-    }
-
-    impl $name {
-      /// Creates from a byte array.
-      #[inline]
-      pub const fn new(addr: [u8; $n]) -> Self {
-        $name(addr)
-      }
-
-      /// Returns the address as a byte slice.
-      #[inline]
-      pub const fn as_bytes(&self) -> &[u8] {
-        &self.0
-      }
-
-      /// Returns the octets of the address.
-      #[inline]
-      pub const fn octets(&self) -> [u8; $n] {
-        self.0
-      }
-
-      /// Returns an array contains a colon formatted address.
-      ///
-      /// The returned array can be used to directly convert to `str`
-      /// by using [`core::str::from_utf8(&array).unwrap( )`](core::str::from_utf8).
-      pub const fn to_colon_seperated_array(&self) -> [u8; $n * 3 - 1] {
-        let mut buf = [0u8; $n * 3 - 1];
-        let mut i = 0;
-
-        while i < $n {
-          if i > 0 {
-            buf[i * 3 - 1] = b':';
-          }
-
-          buf[i * 3] = $crate::__private::HEX_DIGITS[(self.0[i] >> 4) as usize];
-          buf[i * 3 + 1] = $crate::__private::HEX_DIGITS[(self.0[i] & 0xF) as usize];
-          i += 1;
+    #[allow(unexpected_cfgs)]
+    const _: () = {
+      impl $name {
+        /// Creates from a byte array.
+        #[cfg_attr(not(tarpaulin), inline(always))]
+        pub const fn new(addr: [u8; $n]) -> Self {
+          $name(addr)
         }
 
-        buf
-      }
-
-      /// Returns an array contains a hyphen formatted address.
-      ///
-      /// The returned array can be used to directly convert to `str`
-      /// by using [`core::str::from_utf8(&array).unwrap( )`](core::str::from_utf8).
-      pub const fn to_hyphen_seperated_array(&self) -> [u8; $n * 3 - 1] {
-        let mut buf = [0u8; $n * 3 - 1];
-        let mut i = 0;
-
-        while i < $n {
-          if i > 0 {
-            buf[i * 3 - 1] = b'-';
-          }
-
-          buf[i * 3] = $crate::__private::HEX_DIGITS[(self.0[i] >> 4) as usize];
-          buf[i * 3 + 1] = $crate::__private::HEX_DIGITS[(self.0[i] & 0xF) as usize];
-          i += 1;
+        /// Returns the address as a byte slice.
+        #[cfg_attr(not(tarpaulin), inline(always))]
+        pub const fn as_bytes(&self) -> &[u8] {
+          &self.0
         }
 
-        buf
-      }
-
-      /// Returns an array contains a dot formatted address.
-      ///
-      /// The returned array can be used to directly convert to `str`
-      /// by using [`core::str::from_utf8(&array).unwrap( )`](core::str::from_utf8).
-      pub const fn to_dot_seperated_array(&self) -> [u8; $n * 2 + ($n / 2 - 1)] {
-        let mut buf = [0u8; $n * 2 + ($n / 2 - 1)];
-        let mut i = 0;
-
-        while i < $n {
-          // Convert first nibble to hex char
-          buf[i * 2 + i / 2] = $crate::__private::HEX_DIGITS[(self.0[i] >> 4) as usize];
-          // Convert second nibble to hex char
-          buf[i * 2 + 1 + i / 2] = $crate::__private::HEX_DIGITS[(self.0[i] & 0xF) as usize];
-
-          // Add dot every 2 bytes except for the last group
-          if i % 2 == 1 && i != $n - 1 {
-            buf[i * 2 + 2 + i / 2] = b'.';
-          }
-          i += 1;
+        /// Returns the octets of the address.
+        #[cfg_attr(not(tarpaulin), inline(always))]
+        pub const fn octets(&self) -> [u8; $n] {
+          self.0
         }
 
-        buf
-      }
-    }
+        /// Returns an array contains a colon formatted address.
+        ///
+        /// The returned array can be used to directly convert to `str`
+        /// by using [`core::str::from_utf8(&array).unwrap( )`](core::str::from_utf8).
+        #[cfg_attr(not(tarpaulin), inline(always))]
+        pub const fn to_colon_seperated_array(&self) -> [u8; $n * 3 - 1] {
+          let mut buf = [0u8; $n * 3 - 1];
+          let mut i = 0;
 
-    impl ::core::convert::AsRef<[u8]> for $name {
-      #[inline]
-      fn as_ref(&self) -> &[u8] {
-        self.as_bytes()
-      }
-    }
+          while i < $n {
+            if i > 0 {
+              buf[i * 3 - 1] = b':';
+            }
 
-    impl ::core::convert::From<[u8; $n]> for $name {
-      #[inline]
-      fn from(addr: [u8; $n]) -> Self {
-        $name(addr)
-      }
-    }
+            buf[i * 3] = $crate::__private::HEX_DIGITS[(self.0[i] >> 4) as usize];
+            buf[i * 3 + 1] = $crate::__private::HEX_DIGITS[(self.0[i] & 0xF) as usize];
+            i += 1;
+          }
 
-    impl ::core::convert::From<$name> for [u8; $n] {
-      #[inline]
-      fn from(addr: $name) -> Self {
-        addr.0
-      }
-    }
+          buf
+        }
 
-    impl ::core::convert::TryFrom<&str> for $name {
-      type Error = $crate::__private::paste::paste! { [< Parse $name Error >] };
+        /// Returns an array contains a hyphen formatted address.
+        ///
+        /// The returned array can be used to directly convert to `str`
+        /// by using [`core::str::from_utf8(&array).unwrap( )`](core::str::from_utf8).
+        #[cfg_attr(not(tarpaulin), inline(always))]
+        pub const fn to_hyphen_seperated_array(&self) -> [u8; $n * 3 - 1] {
+          let mut buf = [0u8; $n * 3 - 1];
+          let mut i = 0;
 
-      fn try_from(src: &str) -> ::core::result::Result<Self, Self::Error> {
-        <$name as ::core::str::FromStr>::from_str(src)
-      }
-    }
+          while i < $n {
+            if i > 0 {
+              buf[i * 3 - 1] = b'-';
+            }
 
-    impl ::core::fmt::Debug for $name {
-      fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-        ::core::fmt::Display::fmt(self, f)
-      }
-    }
+            buf[i * 3] = $crate::__private::HEX_DIGITS[(self.0[i] >> 4) as usize];
+            buf[i * 3 + 1] = $crate::__private::HEX_DIGITS[(self.0[i] & 0xF) as usize];
+            i += 1;
+          }
 
-    impl core::fmt::Display for $name {
-      fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let buf = self.to_colon_seperated_array();
-        write!(
-          f,
-          "{}",
-          core::str::from_utf8(&buf).unwrap(),
-        )
+          buf
+        }
+
+        /// Returns an array contains a dot formatted address.
+        ///
+        /// The returned array can be used to directly convert to `str`
+        /// by using [`core::str::from_utf8(&array).unwrap( )`](core::str::from_utf8).
+        #[cfg_attr(not(tarpaulin), inline(always))]
+        pub const fn to_dot_seperated_array(&self) -> [u8; $n * 2 + ($n / 2 - 1)] {
+          let mut buf = [0u8; $n * 2 + ($n / 2 - 1)];
+          let mut i = 0;
+
+          while i < $n {
+            // Convert first nibble to hex char
+            buf[i * 2 + i / 2] = $crate::__private::HEX_DIGITS[(self.0[i] >> 4) as usize];
+            // Convert second nibble to hex char
+            buf[i * 2 + 1 + i / 2] = $crate::__private::HEX_DIGITS[(self.0[i] & 0xF) as usize];
+
+            // Add dot every 2 bytes except for the last group
+            if i % 2 == 1 && i != $n - 1 {
+              buf[i * 2 + 2 + i / 2] = b'.';
+            }
+            i += 1;
+          }
+
+          buf
+        }
       }
-    }
+
+      impl ::core::str::FromStr for $name {
+        type Err = $crate::__private::paste::paste! { [< Parse $name Error >] };
+
+        #[cfg_attr(not(tarpaulin), inline(always))]
+        fn from_str(src: &str) -> ::core::result::Result<Self, Self::Err> {
+          $crate::parse::<$n>(src).map(Self)
+        }
+      }
+
+      impl ::core::cmp::PartialEq<[u8]> for $name {
+        #[cfg_attr(not(tarpaulin), inline(always))]
+        fn eq(&self, other: &[u8]) -> bool {
+          self.0.eq(other)
+        }
+      }
+
+      impl ::core::cmp::PartialEq<$name> for [u8] {
+        #[cfg_attr(not(tarpaulin), inline(always))]
+        fn eq(&self, other: &$name) -> bool {
+          other.eq(self)
+        }
+      }
+
+      impl ::core::cmp::PartialEq<&[u8]> for $name {
+        #[cfg_attr(not(tarpaulin), inline(always))]
+        fn eq(&self, other: &&[u8]) -> bool {
+          ::core::cmp::PartialEq::eq(self, *other)
+        }
+      }
+
+      impl ::core::cmp::PartialEq<$name> for &[u8] {
+        #[cfg_attr(not(tarpaulin), inline(always))]
+        fn eq(&self, other: &$name) -> bool {
+          ::core::cmp::PartialEq::eq(*self, other)
+        }
+      }
+
+      impl ::core::borrow::Borrow<[u8]> for $name {
+        #[cfg_attr(not(tarpaulin), inline(always))]
+        fn borrow(&self) -> &[u8] {
+          self
+        }
+      }
+
+      impl ::core::ops::Deref for $name {
+        type Target = [u8];
+
+        #[cfg_attr(not(tarpaulin), inline(always))]
+        fn deref(&self) -> &Self::Target {
+          self.as_bytes()
+        }
+      }
+
+      impl ::core::convert::AsRef<[u8]> for $name {
+        #[cfg_attr(not(tarpaulin), inline(always))]
+        fn as_ref(&self) -> &[u8] {
+          ::core::borrow::Borrow::borrow(self)
+        }
+      }
+
+      impl ::core::convert::From<[u8; $n]> for $name {
+        #[cfg_attr(not(tarpaulin), inline(always))]
+        fn from(addr: [u8; $n]) -> Self {
+          $name(addr)
+        }
+      }
+
+      impl ::core::convert::From<$name> for [u8; $n] {
+        #[cfg_attr(not(tarpaulin), inline(always))]
+        #[allow(unexpected_cfgs)]
+        fn from(addr: $name) -> Self {
+          addr.0
+        }
+      }
+
+      impl ::core::convert::TryFrom<&str> for $name {
+        type Error = $crate::__private::paste::paste! { [< Parse $name Error >] };
+
+        #[cfg_attr(not(tarpaulin), inline(always))]
+        fn try_from(src: &str) -> ::core::result::Result<Self, Self::Error> {
+          <$name as ::core::str::FromStr>::from_str(src)
+        }
+      }
+
+      impl ::core::fmt::Debug for $name {
+        #[cfg_attr(not(tarpaulin), inline(always))]
+        fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+          ::core::fmt::Display::fmt(self, f)
+        }
+      }
+
+      impl core::fmt::Display for $name {
+        #[cfg_attr(not(tarpaulin), inline(always))]
+        fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+          let buf = self.to_colon_seperated_array();
+          write!(
+            f,
+            "{}",
+            core::str::from_utf8(&buf).unwrap(),
+          )
+        }
+      }
+    };
 
     #[cfg(feature = "serde")]
     const _: () = {
@@ -235,6 +289,7 @@ const BIG: i32 = 0x7fffffff;
 /// Returns a tuple containing:
 /// - The parsed number
 /// - Number of bytes consumed
+#[inline]
 pub const fn xtoi(bytes: &[u8]) -> Option<(i32, usize)> {
   let mut n: i32 = 0;
 
@@ -275,6 +330,7 @@ pub const fn xtoi(bytes: &[u8]) -> Option<(i32, usize)> {
 
 /// Converts the next two hex digits of s into a byte.
 /// If s is longer than 2 bytes then the third byte must match e.
+#[inline]
 pub const fn xtoi2(s: &str, e: u8) -> Option<u8> {
   // Take first two characters and parse them
   let bytes = s.as_bytes();
@@ -332,25 +388,25 @@ pub enum ParseError<const N: usize> {
 
 impl<const N: usize> ParseError<N> {
   /// Returns the length of the address.
-  #[inline]
+  #[cfg_attr(not(tarpaulin), inline(always))]
   pub const fn invalid_length(len: usize) -> Self {
     Self::InvalidLength(len)
   }
 
   /// Returns an error for an unexpected separator.
-  #[inline]
+  #[cfg_attr(not(tarpaulin), inline(always))]
   pub const fn unexpected_separator(expected: u8, actual: u8) -> Self {
     Self::UnexpectedSeparator { expected, actual }
   }
 
   /// Returns an error for an invalid separator.
-  #[inline]
+  #[cfg_attr(not(tarpaulin), inline(always))]
   pub const fn invalid_separator(sep: u8) -> Self {
     Self::InvalidSeparator(sep)
   }
 
   /// Returns an error for an invalid hex digit.
-  #[inline]
+  #[cfg_attr(not(tarpaulin), inline(always))]
   pub const fn invalid_hex_digit(digit: [u8; 2]) -> Self {
     Self::InvalidHexDigit(digit)
   }

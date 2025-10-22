@@ -66,7 +66,7 @@ mod tests {
       match (result, &test.output) {
         (Ok(out), Some(expected)) => {
           assert_eq!(
-            out.as_ref(),
+            out,
             expected.as_slice(),
             "Test case {}: Eui64Addr::parse({}) output mismatch",
             i,
@@ -146,11 +146,11 @@ mod tests {
   #[test]
   fn serde_human_unreadable() {
     let addr = Eui64Addr::try_from("02:00:5e:10:00:00:00:01").unwrap();
-    let encoded = bincode::serialize(&addr).unwrap();
+    let encoded = bincode::serde::encode_to_vec(addr, bincode::config::standard()).unwrap();
     assert_eq!(encoded, [2, 0, 94, 16, 0, 0, 0, 1]);
     assert_eq!(addr.octets(), [2, 0, 94, 16, 0, 0, 0, 1]);
 
-    let addr2: Eui64Addr = bincode::deserialize(&encoded).unwrap();
+    let addr2: Eui64Addr = bincode::serde::decode_from_slice(&encoded, bincode::config::standard()).unwrap().0;
     assert_eq!(addr, addr2);
 
     let addr3 = Eui64Addr::from([2, 0, 94, 16, 0, 0, 0, 1]);

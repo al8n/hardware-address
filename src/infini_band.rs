@@ -52,7 +52,7 @@ mod tests {
       match (result, &test.output) {
         (Ok(out), Some(expected)) => {
           assert_eq!(
-            out.as_bytes(),
+            out.as_ref(),
             expected.as_slice(),
             "Test case {}: InfiniBandAddr::parse({}) output mismatch",
             i,
@@ -147,7 +147,7 @@ mod tests {
     let addr =
       InfiniBandAddr::try_from("00:00:00:00:fe:80:00:00:00:00:00:00:02:00:5e:10:00:00:00:01")
         .unwrap();
-    let encoded = bincode::serialize(&addr).unwrap();
+    let encoded = bincode::serde::encode_to_vec(addr, bincode::config::standard()).unwrap();
     assert_eq!(
       encoded,
       [
@@ -157,7 +157,7 @@ mod tests {
     );
     assert_eq!(addr.octets(), encoded.as_slice());
 
-    let addr2: InfiniBandAddr = bincode::deserialize(&encoded).unwrap();
+    let addr2: InfiniBandAddr = bincode::serde::decode_from_slice(&encoded, bincode::config::standard()).unwrap().0;
     assert_eq!(addr, addr2);
     let addr3 = InfiniBandAddr::new([
       0x00, 0x00, 0x00, 0x00, 0xfe, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x5e,

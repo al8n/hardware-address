@@ -73,7 +73,7 @@ mod tests {
       match (result, &test.output) {
         (Ok(out), Some(expected)) => {
           assert_eq!(
-            out.as_bytes(),
+            out.as_ref(),
             expected.as_slice(),
             "Test case {}: MacAddr::parse({}) output mismatch",
             i,
@@ -153,11 +153,11 @@ mod tests {
   #[test]
   fn serde_human_unreadable() {
     let addr = MacAddr::try_from("00:00:5e:00:53:01").unwrap();
-    let json = bincode::serialize(&addr).unwrap();
+    let json = bincode::serde::encode_to_vec(addr, bincode::config::standard()).unwrap();
     assert_eq!(json, [0, 0, 94, 0, 83, 1]);
     assert_eq!(addr.octets(), [0, 0, 94, 0, 83, 1]);
 
-    let addr2: MacAddr = bincode::deserialize(&json).unwrap();
+    let addr2: MacAddr = bincode::serde::decode_from_slice(&json, bincode::config::standard()).unwrap().0;
     assert_eq!(addr, addr2);
 
     let addr3 = MacAddr::new([0, 0, 94, 0, 83, 1]);
