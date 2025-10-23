@@ -213,7 +213,7 @@ jobs:
           RUSTFLAGS: "--cfg tarpaulin"
         with:
           command: tarpaulin
-          args: --all-features --run-types tests --run-types doctests --workspace --out xml
+          args: --features serde --run-types tests --run-types doctests --workspace --out xml
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v5
         with:
