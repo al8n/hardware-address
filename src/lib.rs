@@ -54,6 +54,9 @@ macro_rules! addr_ty {
       }
 
       impl $name {
+        /// The size of the address in bytes.
+        pub const SIZE: ::core::primitive::usize = $n;
+
         /// Creates a zeroed address.
         #[inline]
         pub const fn new() -> Self {
