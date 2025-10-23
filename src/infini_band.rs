@@ -1,9 +1,6 @@
-const INFINI_BAND_ADDRESS_SIZE: usize = 20;
-
 addr_ty!(
   /// Represents a physical 20-octet InfiniBand format address.
-  #[derive(Eq, PartialEq, Ord, PartialOrd, Hash)]
-  InfiniBandAddr[INFINI_BAND_ADDRESS_SIZE]
+  InfiniBandAddr[20]
 );
 
 #[cfg(test)]
@@ -12,6 +9,8 @@ mod tests {
   use crate::TestCase;
 
   use std::{string::ToString, vec, vec::Vec};
+
+  const INFINI_BAND_ADDRESS_SIZE: usize = 20;
 
   fn test_cases() -> Vec<TestCase<INFINI_BAND_ADDRESS_SIZE>> {
     vec![
@@ -52,7 +51,7 @@ mod tests {
       match (result, &test.output) {
         (Ok(out), Some(expected)) => {
           assert_eq!(
-            out.as_bytes(),
+            out.as_ref(),
             expected.as_slice(),
             "Test case {}: InfiniBandAddr::parse({}) output mismatch",
             i,
@@ -104,6 +103,12 @@ mod tests {
   }
 
   #[test]
+  fn test_default() {
+    let addr = InfiniBandAddr::default();
+    assert_eq!(addr.octets(), [0; INFINI_BAND_ADDRESS_SIZE]);
+  }
+
+  #[test]
   fn formatted() {
     let addr =
       InfiniBandAddr::try_from("00:00:00:00:fe:80:00:00:00:00:00:00:02:00:5e:10:00:00:00:01")
@@ -112,15 +117,27 @@ mod tests {
       addr.to_string(),
       "00:00:00:00:fe:80:00:00:00:00:00:00:02:00:5e:10:00:00:00:01"
     );
+    assert_eq!(
+      addr.to_colon_separated(),
+      "00:00:00:00:fe:80:00:00:00:00:00:00:02:00:5e:10:00:00:00:01"
+    );
 
-    let dot = addr.to_dot_seperated_array();
+    let dot = addr.to_dot_separated_array();
     let dot_str = core::str::from_utf8(&dot).unwrap();
     assert_eq!(dot_str, "0000.0000.fe80.0000.0000.0000.0200.5e10.0000.0001");
+    assert_eq!(
+      addr.to_dot_separated(),
+      "0000.0000.fe80.0000.0000.0000.0200.5e10.0000.0001"
+    );
 
-    let dashed = addr.to_hyphen_seperated_array();
+    let dashed = addr.to_hyphen_separated_array();
     let dashed_str = core::str::from_utf8(&dashed).unwrap();
     assert_eq!(
       dashed_str,
+      "00-00-00-00-fe-80-00-00-00-00-00-00-02-00-5e-10-00-00-00-01"
+    );
+    assert_eq!(
+      addr.to_hyphen_separated(),
       "00-00-00-00-fe-80-00-00-00-00-00-00-02-00-5e-10-00-00-00-01"
     );
   }
@@ -147,7 +164,7 @@ mod tests {
     let addr =
       InfiniBandAddr::try_from("00:00:00:00:fe:80:00:00:00:00:00:00:02:00:5e:10:00:00:00:01")
         .unwrap();
-    let encoded = bincode::serialize(&addr).unwrap();
+    let encoded = bincode::serde::encode_to_vec(addr, bincode::config::standard()).unwrap();
     assert_eq!(
       encoded,
       [
@@ -157,9 +174,12 @@ mod tests {
     );
     assert_eq!(addr.octets(), encoded.as_slice());
 
-    let addr2: InfiniBandAddr = bincode::deserialize(&encoded).unwrap();
+    let addr2: InfiniBandAddr =
+      bincode::serde::decode_from_slice(&encoded, bincode::config::standard())
+        .unwrap()
+        .0;
     assert_eq!(addr, addr2);
-    let addr3 = InfiniBandAddr::new([
+    let addr3 = InfiniBandAddr::from_raw([
       0x00, 0x00, 0x00, 0x00, 0xfe, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x5e,
       0x10, 0x00, 0x00, 0x00, 0x01,
     ]);

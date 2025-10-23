@@ -1,9 +1,6 @@
-const EUI64_ADDRESS_SIZE: usize = 8;
-
 addr_ty!(
   /// Represents a physical EUI-64 format address.
-  #[derive(Eq, PartialEq, Ord, PartialOrd, Hash)]
-  Eui64Addr[EUI64_ADDRESS_SIZE]
+  Eui64Addr[8]
 );
 
 #[cfg(test)]
@@ -12,6 +9,8 @@ mod tests {
   use crate::{ParseError, TestCase};
 
   use std::{string::ToString, vec, vec::Vec};
+
+  const EUI64_ADDRESS_SIZE: usize = 8;
 
   fn test_cases() -> Vec<TestCase<EUI64_ADDRESS_SIZE>> {
     vec![
@@ -66,7 +65,7 @@ mod tests {
       match (result, &test.output) {
         (Ok(out), Some(expected)) => {
           assert_eq!(
-            out.as_ref(),
+            out,
             expected.as_slice(),
             "Test case {}: Eui64Addr::parse({}) output mismatch",
             i,
@@ -118,17 +117,26 @@ mod tests {
   }
 
   #[test]
+  fn test_default() {
+    let addr = Eui64Addr::default();
+    assert_eq!(addr.octets(), [0; EUI64_ADDRESS_SIZE]);
+  }
+
+  #[test]
   fn formatted() {
     let addr = Eui64Addr::try_from("02:00:5e:10:00:00:00:01").unwrap();
     assert_eq!(addr.to_string(), "02:00:5e:10:00:00:00:01");
+    assert_eq!(addr.to_colon_separated(), "02:00:5e:10:00:00:00:01");
 
-    let dot = addr.to_dot_seperated_array();
+    let dot = addr.to_dot_separated_array();
     let dot_str = core::str::from_utf8(&dot).unwrap();
     assert_eq!(dot_str, "0200.5e10.0000.0001");
+    assert_eq!(addr.to_dot_separated(), "0200.5e10.0000.0001");
 
-    let dashed = addr.to_hyphen_seperated_array();
+    let dashed = addr.to_hyphen_separated_array();
     let dashed_str = core::str::from_utf8(&dashed).unwrap();
     assert_eq!(dashed_str, "02-00-5e-10-00-00-00-01");
+    assert_eq!(addr.to_hyphen_separated(), "02-00-5e-10-00-00-00-01");
   }
 
   #[cfg(feature = "serde")]
@@ -146,11 +154,13 @@ mod tests {
   #[test]
   fn serde_human_unreadable() {
     let addr = Eui64Addr::try_from("02:00:5e:10:00:00:00:01").unwrap();
-    let encoded = bincode::serialize(&addr).unwrap();
+    let encoded = bincode::serde::encode_to_vec(addr, bincode::config::standard()).unwrap();
     assert_eq!(encoded, [2, 0, 94, 16, 0, 0, 0, 1]);
     assert_eq!(addr.octets(), [2, 0, 94, 16, 0, 0, 0, 1]);
 
-    let addr2: Eui64Addr = bincode::deserialize(&encoded).unwrap();
+    let addr2: Eui64Addr = bincode::serde::decode_from_slice(&encoded, bincode::config::standard())
+      .unwrap()
+      .0;
     assert_eq!(addr, addr2);
 
     let addr3 = Eui64Addr::from([2, 0, 94, 16, 0, 0, 0, 1]);

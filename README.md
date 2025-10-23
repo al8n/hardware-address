@@ -19,16 +19,152 @@ IEEE 802 MAC-48, EUI-48, EUI-64, or a 20-octet IP over InfiniBand link-layer add
 
 ## Installation
 
+### Rust
+
 ```toml
 [dependencies]
-hardware-address = "0.1"
+hardware-address = "0.2"
 ```
+
+**Optional features:**
+
+```toml
+# Serialization support
+hardware-address = { version = "0.2", features = ["serde"] }
+
+# arbitrary support
+hardware-address = { version = "0.2", features = ["arbitrary"] }
+
+# quickcheck support
+hardware-address = { version = "0.2", features = ["quickcheck"] }
+
+# Python bindings
+hardware-address = { version = "0.2", features = ["pyo3"] }
+
+# WebAssembly bindings
+hardware-address = { version = "0.2", features = ["wasm-bindgen"] }
+```
+
+### Python
+
+```bash
+pip install hardware-address
+```
+
+### JavaScript/TypeScript (WASM)
+
+```bash
+npm install hardware-address
+```
+
+## Features
+
+- **`std`** (default): Standard library support
+- **`alloc`**: Allocation support for `no_std` environments
+- **`serde`**: Serialization/deserialization
+- **`arbitrary`**: Fuzzing and property-based testing with [`arbitrary`](https://crates.io/crates/arbitrary)
+- **`quickcheck`**: Property-based testing with [`quickcheck`](https://crates.io/crates/quickcheck)
+- **`pyo3`**: Python bindings
+- **`wasm-bindgen`**: WebAssembly/JavaScript bindings
+
+## Usage
+
+### Rust
+
+```rust
+use hardware_address::MacAddr;
+use std::str::FromStr;
+
+// Parse from string (supports colon, hyphen, and dot separators)
+let addr = MacAddr::from_str("00:00:5e:00:53:01").unwrap();
+let addr = MacAddr::from_str("00-00-5e-00-53-01").unwrap();
+let addr = MacAddr::from_str("0000.5e00.5301").unwrap();
+
+// Create from bytes
+let addr = MacAddr::from_raw([0x00, 0x00, 0x5e, 0x00, 0x53, 0x01]);
+
+// Format conversions
+println!("{}", addr);  // 00:00:5e:00:53:01 (default: colon-separated)
+println!("{}", addr.to_hyphen_separated());  // 00-00-5e-00-53-01
+println!("{}", addr.to_dot_separated());  // 0000.5e00.5301
+
+// Access bytes
+let bytes: [u8; 6] = addr.octets();
+let slice: &[u8] = addr.as_bytes();
+```
+
+### Python
+
+```python
+from hardware_address import MacAddr
+
+# Parse from string (supports colon, hyphen, and dot separators)
+addr = MacAddr.parse("00:00:5e:00:53:01")
+addr = MacAddr.parse("00-00-5e-00-53-01")
+addr = MacAddr.parse("0000.5e00.5301")
+
+# Create from bytes
+addr = MacAddr(b"\x00\x00\x5e\x00\x53\x01")
+
+# String representation
+print(str(addr))   # 00:00:5e:00:53:01
+print(repr(addr))  # MacAddr("00:00:5e:00:53:01")
+
+# Get bytes
+data = bytes(addr)
+
+# Comparison and hashing
+if addr1 == addr2:
+    print("Addresses are equal")
+my_dict = {addr: "device1"}
+```
+
+### JavaScript/TypeScript
+
+```javascript
+import { MacAddr } from 'hardware-address';
+
+// Parse from string (supports colon, hyphen, and dot separators)
+const addr = MacAddr.parse("00:00:5e:00:53:01");
+const addrHyphen = MacAddr.parse("00-00-5e-00-53-01");
+const addrDot = MacAddr.parse("0000.5e00.5301");
+
+// Create from bytes
+const bytes = new Uint8Array([0x00, 0x00, 0x5e, 0x00, 0x53, 0x01]);
+const addr = MacAddr.fromBytes(bytes);
+
+// Format conversions
+console.log(addr.toString());             // 00:00:5e:00:53:01
+console.log(addr.toHyphenSeparated());    // 00-00-5e-00-53-01
+console.log(addr.toDotSeparated());       // 0000.5e00.5301
+
+// Get bytes
+const bytes = addr.toBytes();
+```
+
+## Supported Address Types
+
+- **`MacAddr`**: 6-byte IEEE 802 MAC-48/EUI-48 addresses
+- **`Eui64Addr`**: 8-byte EUI-64 addresses
+- **`InfiniBandAddr`**: 20-byte IP over InfiniBand link-layer addresses
+
+All types support the same API across all platforms (Rust, Python, and JavaScript).
+
+## Format Support
+
+All address types support parsing and formatting in three standard formats:
+
+| Format | Example |
+|--------|---------|
+| Colon-separated | `00:00:5e:00:53:01` |
+| Hyphen-separated | `00-00-5e-00-53-01` |
+| Dot-separated | `0000.5e00.5301` |
 
 ## Pedigree
 
 This code is inspired and modified based on [Golang's mac implementation].
 
-#### License
+## License
 
 `hardware-address` is under the terms of both the MIT license and the
 Apache License (Version 2.0).

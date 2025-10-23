@@ -1,29 +1,40 @@
 [package]
 name = "hardware-address"
-version = "0.1.2"
+version = "0.2.0"
 edition = "2021"
 repository = "https://github.com/al8n/hardware-address"
 homepage = "https://github.com/al8n/hardware-address"
 documentation = "https://docs.rs/hardware-address"
 description = "IEEE 802 MAC-48, EUI-48, EUI-64, or a 20-octet IP over InfiniBand link-layer addresses and more"
 license = "MIT OR Apache-2.0"
-rust-version = "1.56"
+rust-version = "1.64"
 categories = ["network-programming", "no-std"]
 keywords = ["mac-address", "eui64", "eui48", "inifiband", "ieee802"]
+
+[workspace]
+members = ["python", "wasm"]
 
 [features]
 default = ["std"]
 alloc = []
 std = ["thiserror/default"]
 
+quickcheck = ["dep:quickcheck", "alloc"]
+
 [dependencies]
 paste = "1"
 thiserror = { version = "2", default-features = false }
 
-serde = { version = "1.0", features = ["derive"], default-features = false, optional = true }
+serde = { version = "1", features = ["derive"], default-features = false, optional = true }
+
+arbitrary = { version = "1", default-features = false, optional = true }
+quickcheck = { version = "1", default-features = false, optional = true }
+
+pyo3 = { version = "0.27", default-features = false, features = ["macros", "extension-module", "abi3-py37"], optional = true }
+wasm-bindgen = { version = "0.2", default-features = false, features = ["strict-macro"], optional = true }
 
 [dev-dependencies]
-bincode = "1"
+bincode = { version = "2", features = ["serde"] }
 serde_json = "1"
 
 [package.metadata.docs.rs]
@@ -33,3 +44,4 @@ rustdoc-args = ["--cfg", "docsrs"]
 [lints.rust]
 rust_2018_idioms = "warn"
 single_use_lifetimes = "warn"
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(tarpaulin)'] }
