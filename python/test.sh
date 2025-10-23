@@ -7,29 +7,36 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 echo "Building and testing hardware-address Python package..."
 cd "$SCRIPT_DIR"
 
-# Build the package (pyproject.toml already has manifest-path configured)
-echo "Step 1: Building wheel..."
-maturin build --release --out dist
-
-# Find the built wheel
-WHEEL=$(ls -t dist/*.whl 2>/dev/null | head -n1)
-
-if [ -z "$WHEEL" ]; then
-  echo "❌ No wheel found in dist/"
-  exit 1
+# Check if we're in a virtual environment, if not create one
+if [ -z "$VIRTUAL_ENV" ] && [ -z "$CONDA_PREFIX" ]; then
+  echo "Step 1: Creating virtual environment..."
+  python -m venv .venv
+  source .venv/bin/activate
+  echo "✓ Virtual environment activated"
+else
+  echo "Step 1: Using existing virtual environment"
 fi
 
-echo "Found wheel: $WHEEL"
-
-# Install the wheel
+# Install test dependencies
 echo ""
-echo "Step 2: Installing wheel..."
-pip install --force-reinstall "$WHEEL"
+echo "Step 2: Installing test dependencies..."
+pip install pytest
+
+# Build and install in development mode
+echo ""
+echo "Step 3: Building and installing package..."
+pip install maturin
+maturin develop --release
 
 # Run tests
 echo ""
-echo "Step 3: Running unit tests..."
+echo "Step 4: Running unit tests..."
 python -m pytest tests/ -v
 
 echo ""
 echo "✅ All Python tests passed!"
+
+# Deactivate if we created the venv
+if [ -f ".venv/bin/activate" ]; then
+  deactivate || true
+fi

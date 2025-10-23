@@ -33,6 +33,8 @@ Cargo.lock
 __pycache__/
 .pytest_cache/
 *.pyc
+/python/.venv/
+.venv/
 
 # General
 .DS_Store
