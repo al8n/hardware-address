@@ -151,33 +151,27 @@ macro_rules! addr_ty {
         #[cfg(any(feature = "alloc", feature = "std"))]
         #[cfg_attr(docsrs, doc(cfg(any(feature = "alloc", feature = "std"))))]
         pub fn to_colon_separated(&self) -> $crate::__private::String {
-          use $crate::__private::ToString;
-
           let buf = self.to_colon_separated_array();
           // SAFETY: The buffer is always valid UTF-8 as it only contains ASCII characters.
-          unsafe { ::core::str::from_utf8_unchecked(&buf).to_string() }
+          unsafe { $crate::__private::ToString::to_string(::core::str::from_utf8_unchecked(&buf)) }
         }
 
         /// Converts to hyphen-separated format string.
         #[cfg(any(feature = "alloc", feature = "std"))]
-         #[cfg_attr(docsrs, doc(cfg(any(feature = "alloc", feature = "std"))))]
+        #[cfg_attr(docsrs, doc(cfg(any(feature = "alloc", feature = "std"))))]
         pub fn to_hyphen_separated(&self) -> $crate::__private::String {
-          use $crate::__private::ToString;
-
           let buf = self.to_hyphen_separated_array();
           // SAFETY: The buffer is always valid UTF-8 as it only contains ASCII characters.
-          unsafe { ::core::str::from_utf8_unchecked(&buf).to_string() }
+          unsafe { $crate::__private::ToString::to_string(::core::str::from_utf8_unchecked(&buf)) }
         }
 
         /// Converts to dot-separated format string.
         #[cfg(any(feature = "alloc", feature = "std"))]
-         #[cfg_attr(docsrs, doc(cfg(any(feature = "alloc", feature = "std"))))]
+        #[cfg_attr(docsrs, doc(cfg(any(feature = "alloc", feature = "std"))))]
         pub fn to_dot_separated(&self) -> $crate::__private::String {
-          use $crate::__private::ToString;
-
           let buf = self.to_dot_separated_array();
           // SAFETY: The buffer is always valid UTF-8 as it only contains ASCII characters.
-          unsafe { ::core::str::from_utf8_unchecked(&buf).to_string() }
+          unsafe { $crate::__private::ToString::to_string(::core::str::from_utf8_unchecked(&buf)) }
         }
       }
 
@@ -279,7 +273,8 @@ macro_rules! addr_ty {
           write!(
             f,
             "{}",
-            ::core::str::from_utf8(&buf).unwrap(),
+            // SAFETY: The buffer is always valid UTF-8 as it only contains ASCII characters.
+            unsafe { ::core::str::from_utf8_unchecked(&buf) },
           )
         }
       }
@@ -294,7 +289,8 @@ macro_rules! addr_ty {
         {
           if serializer.is_human_readable() {
             let buf = self.to_colon_separated_array();
-            serializer.serialize_str(::core::str::from_utf8(&buf).unwrap())
+            // SAFETY: The buffer is always valid UTF-8 as it only contains ASCII characters.
+            serializer.serialize_str(unsafe { ::core::str::from_utf8_unchecked(&buf) })
           } else {
             <[::core::primitive::u8; $n] as $crate::__private::serde::Serialize>::serialize(&self.0, serializer)
           }
