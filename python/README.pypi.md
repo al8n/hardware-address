@@ -28,10 +28,10 @@ pip install hardware_address
 from hardware_address import MacAddr
 
 # Parse from string
-addr = MacAddr.from_str("00:00:5e:00:53:01")
+addr = MacAddr.parse("00:00:5e:00:53:01")
 
 # Create from bytes
-addr = MacAddr(b"\x00\x00\x5e\x00\x53\x01")
+addr = MacAddr.from_bytes(b"\x00\x00\x5e\x00\x53\x01")
 
 # String representation
 print(str(addr))   # "00:00:5e:00:53:01"
@@ -57,7 +57,7 @@ IEEE 802 MAC-48/EUI-48 addresses:
 ```python
 from hardware_address import MacAddr
 
-addr = MacAddr.from_str("00:00:5e:00:53:01")
+addr = MacAddr.parse("00:00:5e:00:53:01")
 print(addr)  # 00:00:5e:00:53:01
 ```
 
@@ -68,7 +68,7 @@ EUI-64 addresses used in IPv6 and other protocols:
 ```python
 from hardware_address import Eui64Addr
 
-addr = Eui64Addr.from_str("02:00:5e:10:00:00:00:01")
+addr = Eui64Addr.parse("02:00:5e:10:00:00:00:01")
 print(addr)  # 02:00:5e:10:00:00:00:01
 ```
 
@@ -79,7 +79,7 @@ IP over InfiniBand link-layer addresses:
 ```python
 from hardware_address import InfiniBandAddr
 
-addr = InfiniBandAddr.from_str(
+addr = InfiniBandAddr.parse(
     "00:00:00:00:fe:80:00:00:00:00:00:00:02:00:5e:10:00:00:00:01"
 )
 ```
@@ -92,13 +92,13 @@ All address types support three parsing formats:
 from hardware_address import MacAddr
 
 # Colon-separated (standard)
-addr1 = MacAddr.from_str("00:00:5e:00:53:01")
+addr1 = MacAddr.parse("00:00:5e:00:53:01")
 
 # Hyphen-separated (Windows style)
-addr2 = MacAddr.from_str("00-00-5e-00-53-01")
+addr2 = MacAddr.parse("00-00-5e-00-53-01")
 
 # Dot-separated (Cisco style)
-addr3 = MacAddr.from_str("0000.5e00.5301")
+addr3 = MacAddr.parse("0000.5e00.5301")
 
 # All produce the same address
 assert addr1 == addr2 == addr3
@@ -110,10 +110,10 @@ assert addr1 == addr2 == addr3
 
 ```python
 # From string
-addr = MacAddr.from_str("00:00:5e:00:53:01")
+addr = MacAddr.parse("00:00:5e:00:53:01")
 
 # From bytes
-addr = MacAddr(b"\x00\x00\x5e\x00\x53\x01")
+addr = MacAddr.from_bytes(b"\x00\x00\x5e\x00\x53\x01")
 ```
 
 ### Converting Addresses
@@ -150,12 +150,12 @@ devices = {addr: "Device 1"}
 from hardware_address import MacAddr
 
 try:
-    addr = MacAddr.from_str("invalid")
+    addr = MacAddr.parse("invalid")
 except ValueError as e:
     print(f"Parse error: {e}")
 
 try:
-    addr = MacAddr(b"\x00\x00")  # Wrong length
+    addr = MacAddr.from_bytes(b"\x00\x00")  # Wrong length
 except ValueError as e:
     print(f"Invalid length: {e}")
 ```
@@ -180,7 +180,7 @@ def process_address(addr: MacAddr) -> bytes:
     return bytes(addr)
 
 devices: Dict[MacAddr, str] = {}
-devices[MacAddr.from_str("00:00:5e:00:53:01")] = "Server"
+devices[MacAddr.parse("00:00:5e:00:53:01")] = "Server"
 ```
 
 ## Platform Support
