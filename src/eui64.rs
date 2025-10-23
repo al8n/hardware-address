@@ -117,17 +117,35 @@ mod tests {
   }
 
   #[test]
+  fn test_default() {
+    let addr = Eui64Addr::default();
+    assert_eq!(addr.octets(), [0; EUI64_ADDRESS_SIZE]);
+  }
+
+  #[test]
   fn formatted() {
     let addr = Eui64Addr::try_from("02:00:5e:10:00:00:00:01").unwrap();
     assert_eq!(addr.to_string(), "02:00:5e:10:00:00:00:01");
+    assert_eq!(
+      addr.to_colon_separated(),
+      "02:00:5e:10:00:00:00:01"
+    );
 
     let dot = addr.to_dot_separated_array();
     let dot_str = core::str::from_utf8(&dot).unwrap();
     assert_eq!(dot_str, "0200.5e10.0000.0001");
+    assert_eq!(
+      addr.to_dot_separated(),
+      "0200.5e10.0000.0001"
+    );
 
     let dashed = addr.to_hyphen_separated_array();
     let dashed_str = core::str::from_utf8(&dashed).unwrap();
     assert_eq!(dashed_str, "02-00-5e-10-00-00-00-01");
+    assert_eq!(
+      addr.to_hyphen_separated(),
+      "02-00-5e-10-00-00-00-01"
+    );
   }
 
   #[cfg(feature = "serde")]

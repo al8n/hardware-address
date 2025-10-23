@@ -47,7 +47,7 @@ macro_rules! addr_ty {
     #[allow(unexpected_cfgs)]
     const _: () = {
       impl ::core::default::Default for $name {
-        #[cfg_attr(not(tarpaulin), inline(always))]
+        #[inline]
         fn default() -> Self {
           $name::new()
         }
@@ -55,25 +55,25 @@ macro_rules! addr_ty {
 
       impl $name {
         /// Creates a zeroed address.
-        #[cfg_attr(not(tarpaulin), inline(always))]
+        #[inline]
         pub const fn new() -> Self {
           $name([0; $n])
         }
 
         /// Creates from raw byte array address.
-        #[cfg_attr(not(tarpaulin), inline(always))]
+        #[inline]
         pub const fn from_raw(addr: [::core::primitive::u8; $n]) -> Self {
           $name(addr)
         }
 
         /// Returns the address as a byte slice.
-        #[cfg_attr(not(tarpaulin), inline(always))]
+        #[inline]
         pub const fn as_bytes(&self) -> &[::core::primitive::u8] {
           &self.0
         }
 
         /// Returns the octets of the address.
-        #[cfg_attr(not(tarpaulin), inline(always))]
+        #[inline]
         pub const fn octets(&self) -> [::core::primitive::u8; $n] {
           self.0
         }
@@ -82,7 +82,7 @@ macro_rules! addr_ty {
         ///
         /// The returned array can be used to directly convert to `str`
         /// by using [`core::str::from_utf8(&array).unwrap( )`](core::str::from_utf8).
-        #[cfg_attr(not(tarpaulin), inline(always))]
+        #[inline]
         pub const fn to_colon_separated_array(&self) -> [::core::primitive::u8; $n * 3 - 1] {
           let mut buf = [0u8; $n * 3 - 1];
           let mut i = 0;
@@ -104,7 +104,7 @@ macro_rules! addr_ty {
         ///
         /// The returned array can be used to directly convert to `str`
         /// by using [`core::str::from_utf8(&array).unwrap( )`](core::str::from_utf8).
-        #[cfg_attr(not(tarpaulin), inline(always))]
+        #[inline]
         pub const fn to_hyphen_separated_array(&self) -> [::core::primitive::u8; $n * 3 - 1] {
           let mut buf = [0u8; $n * 3 - 1];
           let mut i = 0;
@@ -126,7 +126,7 @@ macro_rules! addr_ty {
         ///
         /// The returned array can be used to directly convert to `str`
         /// by using [`core::str::from_utf8(&array).unwrap( )`](core::str::from_utf8).
-        #[cfg_attr(not(tarpaulin), inline(always))]
+        #[inline]
         pub const fn to_dot_separated_array(&self) -> [::core::primitive::u8; $n * 2 + ($n / 2 - 1)] {
           let mut buf = [0u8; $n * 2 + ($n / 2 - 1)];
           let mut i = 0;
@@ -181,42 +181,42 @@ macro_rules! addr_ty {
       impl ::core::str::FromStr for $name {
         type Err = $crate::__private::paste::paste! { [< Parse $name Error >] };
 
-        #[cfg_attr(not(tarpaulin), inline(always))]
+        #[inline]
         fn from_str(src: &str) -> ::core::result::Result<Self, Self::Err> {
           $crate::parse::<$n>(src.as_bytes()).map(Self)
         }
       }
 
       impl ::core::cmp::PartialEq<[::core::primitive::u8]> for $name {
-        #[cfg_attr(not(tarpaulin), inline(always))]
+        #[inline]
         fn eq(&self, other: &[::core::primitive::u8]) -> bool {
           self.0.eq(other)
         }
       }
 
       impl ::core::cmp::PartialEq<$name> for [::core::primitive::u8] {
-        #[cfg_attr(not(tarpaulin), inline(always))]
+        #[inline]
         fn eq(&self, other: &$name) -> bool {
           other.eq(self)
         }
       }
 
       impl ::core::cmp::PartialEq<&[::core::primitive::u8]> for $name {
-        #[cfg_attr(not(tarpaulin), inline(always))]
+        #[inline]
         fn eq(&self, other: &&[::core::primitive::u8]) -> bool {
           ::core::cmp::PartialEq::eq(self, *other)
         }
       }
 
       impl ::core::cmp::PartialEq<$name> for &[::core::primitive::u8] {
-        #[cfg_attr(not(tarpaulin), inline(always))]
+        #[inline]
         fn eq(&self, other: &$name) -> bool {
           ::core::cmp::PartialEq::eq(*self, other)
         }
       }
 
       impl ::core::borrow::Borrow<[::core::primitive::u8]> for $name {
-        #[cfg_attr(not(tarpaulin), inline(always))]
+        #[inline]
         fn borrow(&self) -> &[::core::primitive::u8] {
           self
         }
@@ -225,28 +225,28 @@ macro_rules! addr_ty {
       impl ::core::ops::Deref for $name {
         type Target = [::core::primitive::u8];
 
-        #[cfg_attr(not(tarpaulin), inline(always))]
+        #[inline]
         fn deref(&self) -> &Self::Target {
           self.as_bytes()
         }
       }
 
       impl ::core::convert::AsRef<[::core::primitive::u8]> for $name {
-        #[cfg_attr(not(tarpaulin), inline(always))]
+        #[inline]
         fn as_ref(&self) -> &[::core::primitive::u8] {
           ::core::borrow::Borrow::borrow(self)
         }
       }
 
       impl ::core::convert::From<[::core::primitive::u8; $n]> for $name {
-        #[cfg_attr(not(tarpaulin), inline(always))]
+        #[inline]
         fn from(addr: [::core::primitive::u8; $n]) -> Self {
           $name(addr)
         }
       }
 
       impl ::core::convert::From<$name> for [::core::primitive::u8; $n] {
-        #[cfg_attr(not(tarpaulin), inline(always))]
+        #[inline]
         #[allow(unexpected_cfgs)]
         fn from(addr: $name) -> Self {
           addr.0
@@ -256,21 +256,21 @@ macro_rules! addr_ty {
       impl ::core::convert::TryFrom<&str> for $name {
         type Error = $crate::__private::paste::paste! { [< Parse $name Error >] };
 
-        #[cfg_attr(not(tarpaulin), inline(always))]
+        #[inline]
         fn try_from(src: &str) -> ::core::result::Result<Self, Self::Error> {
           <$name as ::core::str::FromStr>::from_str(src)
         }
       }
 
       impl ::core::fmt::Debug for $name {
-        #[cfg_attr(not(tarpaulin), inline(always))]
+        #[inline]
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
           ::core::fmt::Display::fmt(self, f)
         }
       }
 
       impl core::fmt::Display for $name {
-        #[cfg_attr(not(tarpaulin), inline(always))]
+        #[inline]
         fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
           let buf = self.to_colon_separated_array();
           write!(
@@ -492,25 +492,25 @@ pub enum ParseError<const N: ::core::primitive::usize> {
 
 impl<const N: ::core::primitive::usize> ParseError<N> {
   /// Returns the length of the address.
-  #[cfg_attr(not(tarpaulin), inline(always))]
+  #[inline]
   pub const fn invalid_length(len: ::core::primitive::usize) -> Self {
     Self::InvalidLength(len)
   }
 
   /// Returns an error for an unexpected separator.
-  #[cfg_attr(not(tarpaulin), inline(always))]
+  #[inline]
   pub const fn unexpected_separator(expected: u8, actual: u8) -> Self {
     Self::UnexpectedSeparator { expected, actual }
   }
 
   /// Returns an error for an invalid separator.
-  #[cfg_attr(not(tarpaulin), inline(always))]
+  #[inline]
   pub const fn invalid_separator(sep: u8) -> Self {
     Self::InvalidSeparator(sep)
   }
 
   /// Returns an error for an invalid hex digit.
-  #[cfg_attr(not(tarpaulin), inline(always))]
+  #[inline]
   pub const fn invalid_hex_digit(digit: [::core::primitive::u8; 2]) -> Self {
     Self::InvalidHexDigit(digit)
   }

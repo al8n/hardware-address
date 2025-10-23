@@ -3,6 +3,7 @@ codecov:
 
 ignore:
   - examples/
+  - python/
   - src/py.rs
   - src/wasm.rs
   - src/quickcheck.rs

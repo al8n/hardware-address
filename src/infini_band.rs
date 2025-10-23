@@ -103,6 +103,12 @@ mod tests {
   }
 
   #[test]
+  fn test_default() {
+    let addr = InfiniBandAddr::default();
+    assert_eq!(addr.octets(), [0; INFINI_BAND_ADDRESS_SIZE]);
+  }
+
+  #[test]
   fn formatted() {
     let addr =
       InfiniBandAddr::try_from("00:00:00:00:fe:80:00:00:00:00:00:00:02:00:5e:10:00:00:00:01")
@@ -111,15 +117,27 @@ mod tests {
       addr.to_string(),
       "00:00:00:00:fe:80:00:00:00:00:00:00:02:00:5e:10:00:00:00:01"
     );
+    assert_eq!(
+      addr.to_colon_separated(),
+      "00:00:00:00:fe:80:00:00:00:00:00:00:02:00:5e:10:00:00:00:01"
+    );
 
     let dot = addr.to_dot_separated_array();
     let dot_str = core::str::from_utf8(&dot).unwrap();
     assert_eq!(dot_str, "0000.0000.fe80.0000.0000.0000.0200.5e10.0000.0001");
+    assert_eq!(
+      addr.to_dot_separated(),
+      "0000.0000.fe80.0000.0000.0000.0200.5e10.0000.0001"
+    );
 
     let dashed = addr.to_hyphen_separated_array();
     let dashed_str = core::str::from_utf8(&dashed).unwrap();
     assert_eq!(
       dashed_str,
+      "00-00-00-00-fe-80-00-00-00-00-00-00-02-00-5e-10-00-00-00-01"
+    );
+    assert_eq!(
+      addr.to_hyphen_separated(),
       "00-00-00-00-fe-80-00-00-00-00-00-00-02-00-5e-10-00-00-00-01"
     );
   }
