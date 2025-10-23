@@ -1,6 +1,3 @@
-
-
-
 addr_ty!(
   /// Represents a physical 20-octet InfiniBand format address.
   InfiniBandAddr[20]
@@ -164,7 +161,7 @@ mod tests {
         .unwrap()
         .0;
     assert_eq!(addr, addr2);
-    let addr3 = InfiniBandAddr::from_array([
+    let addr3 = InfiniBandAddr::from_raw([
       0x00, 0x00, 0x00, 0x00, 0xfe, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x5e,
       0x10, 0x00, 0x00, 0x00, 0x01,
     ]);

@@ -1,5 +1,3 @@
-
-
 addr_ty!(
   /// Represents a physical EUI-64 format address.
   Eui64Addr[8]

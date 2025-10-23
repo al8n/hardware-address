@@ -1,4 +1,3 @@
-
 #[macro_export]
 #[doc(hidden)]
 macro_rules! __addr_ty_pyo3 {
@@ -38,7 +37,11 @@ macro_rules! __addr_ty_pyo3 {
           hasher.finish()
         }
 
-        fn __richcmp__(&self, other: &Self, op: $crate::__private::pyo3::pyclass::CompareOp) -> bool {
+        fn __richcmp__(
+          &self,
+          other: &Self,
+          op: $crate::__private::pyo3::pyclass::CompareOp,
+        ) -> bool {
           use $crate::__private::pyo3::pyclass::CompareOp;
           match op {
             CompareOp::Lt => self < other,
@@ -52,21 +55,30 @@ macro_rules! __addr_ty_pyo3 {
 
         /// Converts to colon-separated format bytes.
         #[pyo3(name = "to_colon_separated_bytes")]
-        fn __to_colon_separated_array_py<'py>(&self, py: $crate::__private::pyo3::Python<'py>) -> Bound<'py, PyBytes> {
+        fn __to_colon_separated_array_py<'py>(
+          &self,
+          py: $crate::__private::pyo3::Python<'py>,
+        ) -> Bound<'py, PyBytes> {
           let buf = self.to_colon_separated_array();
           PyBytes::new(py, &buf)
         }
 
         /// Converts to hyphen-separated format bytes.
         #[pyo3(name = "to_hyphen_separated_bytes")]
-        fn __to_hyphen_separated_array_py<'py>(&self, py: $crate::__private::pyo3::Python<'py>) -> Bound<'py, PyBytes> {
+        fn __to_hyphen_separated_array_py<'py>(
+          &self,
+          py: $crate::__private::pyo3::Python<'py>,
+        ) -> Bound<'py, PyBytes> {
           let buf = self.to_hyphen_separated_array();
           PyBytes::new(py, &buf)
         }
 
         /// Converts to dot-separated format bytes.
         #[pyo3(name = "to_dot_separated_bytes")]
-        fn __to_dot_separated_array_py<'py>(&self, py: $crate::__private::pyo3::Python<'py>) -> Bound<'py, PyBytes> {
+        fn __to_dot_separated_array_py<'py>(
+          &self,
+          py: $crate::__private::pyo3::Python<'py>,
+        ) -> Bound<'py, PyBytes> {
           let buf = self.to_dot_separated_array();
           PyBytes::new(py, &buf)
         }
@@ -97,8 +109,11 @@ macro_rules! __addr_ty_pyo3 {
         #[pyo3(name = "parse")]
         #[cfg_attr(docsrs, doc(hidden))]
         fn __parse_py(s: &::core::primitive::str) -> $crate::__private::pyo3::PyResult<Self> {
-          <$name as ::core::str::FromStr>::from_str(s)
-            .map_err(|e| $crate::__private::pyo3::exceptions::PyValueError::new_err(::core::format_args!("{}", e).to_string()))
+          <$name as ::core::str::FromStr>::from_str(s).map_err(|e| {
+            $crate::__private::pyo3::exceptions::PyValueError::new_err(
+              ::core::format_args!("{}", e).to_string(),
+            )
+          })
         }
 
         /// Create an address from bytes.
@@ -108,7 +123,7 @@ macro_rules! __addr_ty_pyo3 {
           let data = bytes.as_bytes();
           if data.len() != $n {
             return Err($crate::__private::pyo3::exceptions::PyValueError::new_err(
-              format!("Expected {} bytes, got {}", $n, data.len())
+              format!("Expected {} bytes, got {}", $n, data.len()),
             ));
           }
           let mut arr = [0u8; $n];
@@ -117,5 +132,5 @@ macro_rules! __addr_ty_pyo3 {
         }
       }
     };
-  }
+  };
 }

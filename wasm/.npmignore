@@ -1,0 +1,37 @@
+# Source files
+src/
+target/
+Cargo.lock
+.cargo/
+
+# Documentation (except npm README)
+*.md
+!pkg/README.md
+
+# Git and CI
+.git/
+.github/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Tests
+tests/
+examples/
+
+# Python
+*.pyc
+__pycache__/
+*.egg-info/
+dist/
+build/
+
+# Misc
+.DS_Store
+*.log
+node_modules/

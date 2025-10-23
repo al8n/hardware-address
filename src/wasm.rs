@@ -1,4 +1,3 @@
-
 #[doc(hidden)]
 #[macro_export]
 macro_rules! __addr_ty_wasm_bindgen {
@@ -21,9 +20,15 @@ macro_rules! __addr_ty_wasm_bindgen {
         /// Create an address from bytes.
         #[wasm_bindgen(js_name = "fromBytes")]
         #[doc(hidden)]
-        pub fn __from_bytes_js(bytes: &[::core::primitive::u8]) -> ::core::result::Result<$name, JsError> {
+        pub fn __from_bytes_js(
+          bytes: &[::core::primitive::u8],
+        ) -> ::core::result::Result<$name, JsError> {
           if bytes.len() != $n {
-            return Err(JsError::new(&format!("Expected {} bytes, got {}", $n, bytes.len())));
+            return Err(JsError::new(&format!(
+              "Expected {} bytes, got {}",
+              $n,
+              bytes.len()
+            )));
           }
           let mut arr = [0u8; $n];
           arr.copy_from_slice(bytes);
@@ -34,8 +39,7 @@ macro_rules! __addr_ty_wasm_bindgen {
         #[wasm_bindgen(js_name = "parse")]
         #[doc(hidden)]
         pub fn __parse_js(s: &::core::primitive::str) -> ::core::result::Result<$name, JsError> {
-          <$name as ::core::str::FromStr>::from_str(s)
-            .map_err(|e| JsError::new(&format!("{}", e)))
+          <$name as ::core::str::FromStr>::from_str(s).map_err(|e| JsError::new(&format!("{}", e)))
         }
 
         /// Converts to string representation.
@@ -82,7 +86,9 @@ macro_rules! __addr_ty_wasm_bindgen {
         #[wasm_bindgen(js_name = "toColonSeparatedBytes")]
         #[cfg(any(feature = "alloc", feature = "std"))]
         #[doc(hidden)]
-        pub fn __to_colon_separated_array_js(&self) -> $crate::__private::Vec<::core::primitive::u8> {
+        pub fn __to_colon_separated_array_js(
+          &self,
+        ) -> $crate::__private::Vec<::core::primitive::u8> {
           self.to_colon_separated_array().to_vec()
         }
 
@@ -90,7 +96,9 @@ macro_rules! __addr_ty_wasm_bindgen {
         #[wasm_bindgen(js_name = "toHyphenSeparatedBytes")]
         #[cfg(any(feature = "alloc", feature = "std"))]
         #[doc(hidden)]
-        pub fn __to_hyphen_separated_array_js(&self) -> $crate::__private::Vec<::core::primitive::u8> {
+        pub fn __to_hyphen_separated_array_js(
+          &self,
+        ) -> $crate::__private::Vec<::core::primitive::u8> {
           self.to_hyphen_separated_array().to_vec()
         }
 
@@ -103,5 +111,5 @@ macro_rules! __addr_ty_wasm_bindgen {
         }
       }
     };
-  }
+  };
 }

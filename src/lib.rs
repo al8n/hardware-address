@@ -39,7 +39,7 @@ macro_rules! addr_ty {
         #[derive(::core::clone::Clone, ::core::marker::Copy, ::core::cmp::Eq, ::core::cmp::PartialEq, ::core::cmp::Ord, ::core::cmp::PartialOrd, ::core::hash::Hash)]
         #[cfg_attr(feature = "pyo3", $crate::__private::pyo3::pyclass(crate = "__pyo3"))]
         #[cfg_attr(feature = "wasm-bindgen", $crate::__private::wasm_bindgen::prelude::wasm_bindgen(wasm_bindgen = __wasm_bindgen))]
-        #[repr(transparent)]        
+        #[repr(transparent)]
         pub struct $name(pub(crate) [::core::primitive::u8; $n]);
       }
     }
@@ -60,9 +60,9 @@ macro_rules! addr_ty {
           $name([0; $n])
         }
 
-        /// Creates from a byte array.
+        /// Creates from raw byte array address.
         #[cfg_attr(not(tarpaulin), inline(always))]
-        pub const fn from_array(addr: [::core::primitive::u8; $n]) -> Self {
+        pub const fn from_raw(addr: [::core::primitive::u8; $n]) -> Self {
           $name(addr)
         }
 
@@ -183,7 +183,7 @@ macro_rules! addr_ty {
 
         #[cfg_attr(not(tarpaulin), inline(always))]
         fn from_str(src: &str) -> ::core::result::Result<Self, Self::Err> {
-          $crate::parse::<$n>(src).map(Self)
+          $crate::parse::<$n>(src.as_bytes()).map(Self)
         }
       }
 
@@ -348,7 +348,6 @@ mod arbitrary;
 #[cfg(feature = "quickcheck")]
 mod quickcheck;
 
-
 #[doc(hidden)]
 pub mod __private {
   pub const HEX_DIGITS: &[::core::primitive::u8] = b"0123456789abcdef";
@@ -374,7 +373,11 @@ pub mod __private {
   pub use wasm_bindgen;
 
   #[cfg(any(feature = "alloc", feature = "std"))]
-  pub use std::{boxed::Box, string::{String, ToString}, vec::Vec};
+  pub use std::{
+    boxed::Box,
+    string::{String, ToString},
+    vec::Vec,
+  };
 
   pub use paste;
 }
@@ -383,9 +386,11 @@ pub mod __private {
 const BIG: i32 = 0x7fffffff;
 
 /// Converts a hexadecimal slice to an integer.
-/// Returns a tuple containing:
-/// - The parsed number
-/// - Number of bytes consumed
+///
+/// - Returns a tuple containing:
+///   - The parsed number
+///   - Number of bytes consumed
+/// - Returns `None` if parsing fails.
 #[inline]
 pub const fn xtoi(bytes: &[::core::primitive::u8]) -> Option<(i32, ::core::primitive::usize)> {
   let mut n: i32 = 0;
@@ -427,22 +432,23 @@ pub const fn xtoi(bytes: &[::core::primitive::u8]) -> Option<(i32, ::core::primi
 
 /// Converts the next two hex digits of s into a byte.
 /// If s is longer than 2 bytes then the third byte must match e.
+/// 
+/// Returns `None` if parsing fails.
 #[inline]
-pub const fn xtoi2(s: &str, e: u8) -> Option<::core::primitive::u8> {
+pub const fn xtoi2(s: &[u8], e: u8) -> Option<::core::primitive::u8> {
   // Take first two characters and parse them
-  let bytes = s.as_bytes();
-  let num_bytes = bytes.len();
+  let num_bytes = s.len();
 
   // Check if string is longer than 2 chars and third char matches e
-  if num_bytes > 2 && bytes[2] != e {
+  if num_bytes > 2 && s[2] != e {
     return None;
   }
 
   let res = if num_bytes >= 2 {
-    let buf = [bytes[0], bytes[1]];
+    let buf = [s[0], s[1]];
     xtoi(&buf)
   } else {
-    xtoi(bytes)
+    xtoi(s)
   };
 
   match res {
@@ -457,7 +463,8 @@ const fn dot_separated_format_len<const N: ::core::primitive::usize>() -> ::core
 }
 
 #[inline]
-const fn colon_separated_format_len<const N: ::core::primitive::usize>() -> ::core::primitive::usize {
+const fn colon_separated_format_len<const N: ::core::primitive::usize>() -> ::core::primitive::usize
+{
   N * 3 - 1
 }
 
@@ -523,12 +530,14 @@ impl<const N: ::core::primitive::usize> ParseError<N> {
 /// - Dot-separated:
 ///   - `0000.5e00.5301`
 ///   - `0200.5e10.0000.0001`
-pub fn parse<const N: ::core::primitive::usize>(src: &str) -> Result<[::core::primitive::u8; N], ParseError<N>> {
+pub fn parse<const N: ::core::primitive::usize>(
+  src: &[u8],
+) -> Result<[::core::primitive::u8; N], ParseError<N>> {
   let dot_separated_len = dot_separated_format_len::<N>();
   let colon_separated_len = colon_separated_format_len::<N>();
   let len = src.len();
 
-  let bytes = src.as_bytes();
+  let bytes = src;
   match () {
     () if len == dot_separated_len => {
       let mut hw = [0; N];
@@ -608,10 +617,10 @@ mod tests {
 
   #[test]
   fn test_xtoi2() {
-    assert_eq!(xtoi2("12", b'\0'), Some(0x12));
-    assert_eq!(xtoi2("12x", b'x'), Some(0x12));
-    assert_eq!(xtoi2("12y", b'x'), None);
-    assert_eq!(xtoi2("1", b'\0'), None);
-    assert_eq!(xtoi2("xy", b'\0'), None);
+    assert_eq!(xtoi2(b"12", b'\0'), Some(0x12));
+    assert_eq!(xtoi2(b"12x", b'x'), Some(0x12));
+    assert_eq!(xtoi2(b"12y", b'x'), None);
+    assert_eq!(xtoi2(b"1", b'\0'), None);
+    assert_eq!(xtoi2(b"xy", b'\0'), None);
   }
 }

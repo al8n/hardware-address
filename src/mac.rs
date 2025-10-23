@@ -161,7 +161,7 @@ mod tests {
       .0;
     assert_eq!(addr, addr2);
 
-    let addr3 = MacAddr::from_array([0, 0, 94, 0, 83, 1]);
+    let addr3 = MacAddr::from_raw([0, 0, 94, 0, 83, 1]);
     assert_eq!(addr, addr3);
 
     println!("{:?}", addr);

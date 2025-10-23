@@ -1,4 +1,3 @@
-
 #[macro_export]
 #[doc(hidden)]
 macro_rules! __addr_ty_quickcheck {
@@ -18,20 +17,17 @@ macro_rules! __addr_ty_quickcheck {
 
         fn shrink(&self) -> $crate::__private::Box<dyn ::core::iter::Iterator<Item = Self>> {
           let bytes = self.0.to_vec();
-          $crate::__private::Box::new(
-            bytes.shrink()
-              .filter_map(|v| {
-                if v.len() == $n {
-                  let mut arr = [0u8; $n];
-                  arr.copy_from_slice(&v);
-                  ::core::option::Option::Some($name(arr))
-                } else {
-                  ::core::option::Option::None
-                }
-              })
-          )
+          $crate::__private::Box::new(bytes.shrink().filter_map(|v| {
+            if v.len() == $n {
+              let mut arr = [0u8; $n];
+              arr.copy_from_slice(&v);
+              ::core::option::Option::Some($name(arr))
+            } else {
+              ::core::option::Option::None
+            }
+          }))
         }
       }
     };
-  }
+  };
 }
