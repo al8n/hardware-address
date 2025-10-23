@@ -3,7 +3,7 @@ requires = ["maturin>=1.9,<2.0"]
 build-backend = "maturin"
 
 [project]
-name = "hardware-address"
+name = "hardware_address"
 description = "IEEE 802 MAC-48, EUI-48, EUI-64, or a 20-octet IP over InfiniBand link-layer addresses"
 readme = "README.pypi.md"
 requires-python = ">=3.8"

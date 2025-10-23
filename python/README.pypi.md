@@ -11,7 +11,7 @@ A fast, memory-safe library for working with hardware addresses, powered by Rust
 ## Installation
 
 ```bash
-pip install hardware-address
+pip install hardware_address
 ```
 
 ## Features
