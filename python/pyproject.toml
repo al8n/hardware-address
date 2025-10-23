@@ -3,7 +3,7 @@ requires = ["maturin>=1.9,<2.0"]
 build-backend = "maturin"
 
 [project]
-name = "hardware_address"
+name = "hardware-address"
 description = "IEEE 802 MAC-48, EUI-48, EUI-64, or a 20-octet IP over InfiniBand link-layer addresses"
 readme = "README.pypi.md"
 requires-python = ">=3.8"
@@ -48,7 +48,7 @@ test = [
 # Features to enable when building
 features = ["pyo3/extension-module"]
 # Path to the Rust project root (parent directory)
-manifest-path = "../Cargo.toml"
+manifest-path = "Cargo.toml"
 # Module name (the Python import name)
 module-name = "hardware_address"
 # Python packages directory (if you have pure Python code alongside Rust)
