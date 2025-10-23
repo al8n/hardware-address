@@ -432,7 +432,7 @@ pub const fn xtoi(bytes: &[::core::primitive::u8]) -> Option<(i32, ::core::primi
 
 /// Converts the next two hex digits of s into a byte.
 /// If s is longer than 2 bytes then the third byte must match e.
-/// 
+///
 /// Returns `None` if parsing fails.
 #[inline]
 pub const fn xtoi2(s: &[u8], e: u8) -> Option<::core::primitive::u8> {

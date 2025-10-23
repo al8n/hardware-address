@@ -13,6 +13,9 @@ keywords = ["mac-address", "eui64", "eui48", "inifiband", "ieee802"]
 
 exclude = ["wasm"]
 
+[workspace]
+members = ["python"]
+
 [features]
 default = ["std"]
 alloc = []
