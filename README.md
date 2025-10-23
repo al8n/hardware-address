@@ -27,6 +27,7 @@ hardware-address = "0.2"
 ```
 
 **Optional features:**
+
 ```toml
 # Serialization support
 hardware-address = { version = "0.2", features = ["serde"] }
@@ -118,7 +119,7 @@ if addr1 == addr2:
 my_dict = {addr: "device1"}
 ```
 
-### JavaScript/TypeScript (WASM)
+### JavaScript/TypeScript
 
 ```javascript
 import { MacAddr } from 'hardware-address';
@@ -158,11 +159,6 @@ All address types support parsing and formatting in three standard formats:
 | Colon-separated | `00:00:5e:00:53:01` |
 | Hyphen-separated | `00-00-5e-00-53-01` |
 | Dot-separated | `0000.5e00.5301` |
-
-## Publishing Guides
-
-- [Python (PyPI) Publishing Guide](./PYTHON_PUBLISHING.md)
-- [JavaScript/WASM (npm) Publishing Guide](./WASM_PUBLISHING.md)
 
 ## Pedigree
 

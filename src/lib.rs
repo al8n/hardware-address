@@ -149,6 +149,7 @@ macro_rules! addr_ty {
 
         /// Converts to colon-separated format string.
         #[cfg(any(feature = "alloc", feature = "std"))]
+        #[cfg_attr(docsrs, doc(cfg(any(feature = "alloc", feature = "std"))))]
         pub fn to_colon_separated(&self) -> $crate::__private::String {
           use $crate::__private::ToString;
 
@@ -159,6 +160,7 @@ macro_rules! addr_ty {
 
         /// Converts to hyphen-separated format string.
         #[cfg(any(feature = "alloc", feature = "std"))]
+         #[cfg_attr(docsrs, doc(cfg(any(feature = "alloc", feature = "std"))))]
         pub fn to_hyphen_separated(&self) -> $crate::__private::String {
           use $crate::__private::ToString;
 
@@ -169,6 +171,7 @@ macro_rules! addr_ty {
 
         /// Converts to dot-separated format string.
         #[cfg(any(feature = "alloc", feature = "std"))]
+         #[cfg_attr(docsrs, doc(cfg(any(feature = "alloc", feature = "std"))))]
         pub fn to_dot_separated(&self) -> $crate::__private::String {
           use $crate::__private::ToString;
 
