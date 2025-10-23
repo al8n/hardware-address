@@ -1,0 +1,43 @@
+{
+  "name": "hardware-address",
+  "version": "0.1.3",
+  "description": "IEEE 802 MAC-48, EUI-48, EUI-64, and InfiniBand hardware addresses for WebAssembly",
+  "keywords": [
+    "mac-address",
+    "eui64",
+    "eui48",
+    "hardware-address",
+    "network",
+    "wasm",
+    "webassembly",
+    "infiniband",
+    "ieee802"
+  ],
+  "author": "Al Liu <scygliu1@gmail.com>",
+  "license": "MIT OR Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/al8n/hardware-address.git"
+  },
+  "homepage": "https://github.com/al8n/hardware-address#readme",
+  "bugs": {
+    "url": "https://github.com/al8n/hardware-address/issues"
+  },
+  "files": [
+    "pkg/**/*"
+  ],
+  "scripts": {
+    "build": "wasm-pack build --target bundler --features wasm-bindgen --release",
+    "build:node": "wasm-pack build --target nodejs --features wasm-bindgen --release --out-dir pkg-node",
+    "build:web": "wasm-pack build --target web --features wasm-bindgen --release --out-dir pkg-web",
+    "build:all": "npm run build && npm run build:node && npm run build:web",
+    "test": "wasm-pack test --node --features wasm-bindgen",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "wasm-pack": "^0.12.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -210,10 +210,10 @@ jobs:
       - name: Run tarpaulin
         uses: actions-rs/cargo@v1
         env:
-          RUSTFLAGS: "--cfg all_tests"
+          RUSTFLAGS: "--cfg tarpaulin"
         with:
           command: tarpaulin
-          args: --all-features --run-types tests --run-types doctests --workspace --out xml
+          args: --features serde --run-types tests --run-types doctests -p hardware-address --out xml
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v5
         with:

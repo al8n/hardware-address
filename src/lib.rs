@@ -20,160 +20,268 @@ macro_rules! addr_ty {
     $(#[$attr:meta])*
     $name:ident[$n:expr]
   ) => {
+    paste::paste! {
+      pub use [< __ $name:snake __ >]::{$name, [< Parse $name Error >]};
 
-    $crate::__private::paste::paste! {
-      #[doc = "Represents an error that occurred while parsing `" $name "`."]
-      pub type [< Parse $name Error >] = $crate::ParseError<$n>;
-    }
+      #[doc(hidden)]
+      #[allow(unused)]
+      mod [< __ $name:snake __ >] {
+        #[cfg(feature = "pyo3")]
+        use $crate::__private::pyo3 as __pyo3;
 
-    $(#[$attr])*
-    #[derive(
-      ::core::clone::Clone,
-      ::core::marker::Copy,
-    )]
-    #[repr(transparent)]
-    pub struct $name([u8; $n]);
+        #[cfg(feature = "wasm-bindgen")]
+        use $crate::__private::wasm_bindgen as __wasm_bindgen;
 
-    impl ::core::str::FromStr for $name {
-      type Err = $crate::__private::paste::paste! { [< Parse $name Error >] };
+        #[doc = "Represents an error that occurred while parsing `" $name "`."]
+        pub type [< Parse $name Error >] = $crate::ParseError<$n>;
 
-      #[inline]
-      fn from_str(src: &str) -> Result<Self, Self::Err> {
-        $crate::parse::<$n>(src).map(Self)
+        $(#[$attr])*
+        #[derive(::core::clone::Clone, ::core::marker::Copy, ::core::cmp::Eq, ::core::cmp::PartialEq, ::core::cmp::Ord, ::core::cmp::PartialOrd, ::core::hash::Hash)]
+        #[cfg_attr(feature = "pyo3", $crate::__private::pyo3::pyclass(crate = "__pyo3"))]
+        #[cfg_attr(feature = "wasm-bindgen", $crate::__private::wasm_bindgen::prelude::wasm_bindgen(wasm_bindgen = __wasm_bindgen))]
+        #[repr(transparent)]
+        pub struct $name(pub(crate) [::core::primitive::u8; $n]);
       }
     }
 
-    impl $name {
-      /// Creates from a byte array.
-      #[inline]
-      pub const fn new(addr: [u8; $n]) -> Self {
-        $name(addr)
+    #[allow(unexpected_cfgs)]
+    const _: () = {
+      impl ::core::default::Default for $name {
+        #[inline]
+        fn default() -> Self {
+          $name::new()
+        }
       }
 
-      /// Returns the address as a byte slice.
-      #[inline]
-      pub const fn as_bytes(&self) -> &[u8] {
-        &self.0
-      }
+      impl $name {
+        /// The size of the address in bytes.
+        pub const SIZE: ::core::primitive::usize = $n;
 
-      /// Returns the octets of the address.
-      #[inline]
-      pub const fn octets(&self) -> [u8; $n] {
-        self.0
-      }
-
-      /// Returns an array contains a colon formatted address.
-      ///
-      /// The returned array can be used to directly convert to `str`
-      /// by using [`core::str::from_utf8(&array).unwrap( )`](core::str::from_utf8).
-      pub const fn to_colon_seperated_array(&self) -> [u8; $n * 3 - 1] {
-        let mut buf = [0u8; $n * 3 - 1];
-        let mut i = 0;
-
-        while i < $n {
-          if i > 0 {
-            buf[i * 3 - 1] = b':';
-          }
-
-          buf[i * 3] = $crate::__private::HEX_DIGITS[(self.0[i] >> 4) as usize];
-          buf[i * 3 + 1] = $crate::__private::HEX_DIGITS[(self.0[i] & 0xF) as usize];
-          i += 1;
+        /// Creates a zeroed address.
+        #[inline]
+        pub const fn new() -> Self {
+          $name([0; $n])
         }
 
-        buf
-      }
-
-      /// Returns an array contains a hyphen formatted address.
-      ///
-      /// The returned array can be used to directly convert to `str`
-      /// by using [`core::str::from_utf8(&array).unwrap( )`](core::str::from_utf8).
-      pub const fn to_hyphen_seperated_array(&self) -> [u8; $n * 3 - 1] {
-        let mut buf = [0u8; $n * 3 - 1];
-        let mut i = 0;
-
-        while i < $n {
-          if i > 0 {
-            buf[i * 3 - 1] = b'-';
-          }
-
-          buf[i * 3] = $crate::__private::HEX_DIGITS[(self.0[i] >> 4) as usize];
-          buf[i * 3 + 1] = $crate::__private::HEX_DIGITS[(self.0[i] & 0xF) as usize];
-          i += 1;
+        /// Creates from raw byte array address.
+        #[inline]
+        pub const fn from_raw(addr: [::core::primitive::u8; $n]) -> Self {
+          $name(addr)
         }
 
-        buf
-      }
-
-      /// Returns an array contains a dot formatted address.
-      ///
-      /// The returned array can be used to directly convert to `str`
-      /// by using [`core::str::from_utf8(&array).unwrap( )`](core::str::from_utf8).
-      pub const fn to_dot_seperated_array(&self) -> [u8; $n * 2 + ($n / 2 - 1)] {
-        let mut buf = [0u8; $n * 2 + ($n / 2 - 1)];
-        let mut i = 0;
-
-        while i < $n {
-          // Convert first nibble to hex char
-          buf[i * 2 + i / 2] = $crate::__private::HEX_DIGITS[(self.0[i] >> 4) as usize];
-          // Convert second nibble to hex char
-          buf[i * 2 + 1 + i / 2] = $crate::__private::HEX_DIGITS[(self.0[i] & 0xF) as usize];
-
-          // Add dot every 2 bytes except for the last group
-          if i % 2 == 1 && i != $n - 1 {
-            buf[i * 2 + 2 + i / 2] = b'.';
-          }
-          i += 1;
+        /// Returns the address as a byte slice.
+        #[inline]
+        pub const fn as_bytes(&self) -> &[::core::primitive::u8] {
+          &self.0
         }
 
-        buf
-      }
-    }
+        /// Returns the octets of the address.
+        #[inline]
+        pub const fn octets(&self) -> [::core::primitive::u8; $n] {
+          self.0
+        }
 
-    impl ::core::convert::AsRef<[u8]> for $name {
-      #[inline]
-      fn as_ref(&self) -> &[u8] {
-        self.as_bytes()
-      }
-    }
+        /// Returns an array contains a colon formatted address.
+        ///
+        /// The returned array can be used to directly convert to `str`
+        /// by using [`core::str::from_utf8(&array).unwrap( )`](core::str::from_utf8).
+        #[inline]
+        pub const fn to_colon_separated_array(&self) -> [::core::primitive::u8; $n * 3 - 1] {
+          let mut buf = [0u8; $n * 3 - 1];
+          let mut i = 0;
 
-    impl ::core::convert::From<[u8; $n]> for $name {
-      #[inline]
-      fn from(addr: [u8; $n]) -> Self {
-        $name(addr)
-      }
-    }
+          while i < $n {
+            if i > 0 {
+              buf[i * 3 - 1] = b':';
+            }
 
-    impl ::core::convert::From<$name> for [u8; $n] {
-      #[inline]
-      fn from(addr: $name) -> Self {
-        addr.0
-      }
-    }
+            buf[i * 3] = $crate::__private::HEX_DIGITS[(self.0[i] >> 4) as ::core::primitive::usize];
+            buf[i * 3 + 1] = $crate::__private::HEX_DIGITS[(self.0[i] & 0xF) as ::core::primitive::usize];
+            i += 1;
+          }
 
-    impl ::core::convert::TryFrom<&str> for $name {
-      type Error = $crate::__private::paste::paste! { [< Parse $name Error >] };
+          buf
+        }
 
-      fn try_from(src: &str) -> ::core::result::Result<Self, Self::Error> {
-        <$name as ::core::str::FromStr>::from_str(src)
-      }
-    }
+        /// Returns an array contains a hyphen formatted address.
+        ///
+        /// The returned array can be used to directly convert to `str`
+        /// by using [`core::str::from_utf8(&array).unwrap( )`](core::str::from_utf8).
+        #[inline]
+        pub const fn to_hyphen_separated_array(&self) -> [::core::primitive::u8; $n * 3 - 1] {
+          let mut buf = [0u8; $n * 3 - 1];
+          let mut i = 0;
 
-    impl ::core::fmt::Debug for $name {
-      fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-        ::core::fmt::Display::fmt(self, f)
-      }
-    }
+          while i < $n {
+            if i > 0 {
+              buf[i * 3 - 1] = b'-';
+            }
 
-    impl core::fmt::Display for $name {
-      fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let buf = self.to_colon_seperated_array();
-        write!(
-          f,
-          "{}",
-          core::str::from_utf8(&buf).unwrap(),
-        )
+            buf[i * 3] = $crate::__private::HEX_DIGITS[(self.0[i] >> 4) as ::core::primitive::usize];
+            buf[i * 3 + 1] = $crate::__private::HEX_DIGITS[(self.0[i] & 0xF) as ::core::primitive::usize];
+            i += 1;
+          }
+
+          buf
+        }
+
+        /// Returns an array contains a dot formatted address.
+        ///
+        /// The returned array can be used to directly convert to `str`
+        /// by using [`core::str::from_utf8(&array).unwrap( )`](core::str::from_utf8).
+        #[inline]
+        pub const fn to_dot_separated_array(&self) -> [::core::primitive::u8; $n * 2 + ($n / 2 - 1)] {
+          let mut buf = [0u8; $n * 2 + ($n / 2 - 1)];
+          let mut i = 0;
+
+          while i < $n {
+            // Convert first nibble to hex char
+            buf[i * 2 + i / 2] = $crate::__private::HEX_DIGITS[(self.0[i] >> 4) as ::core::primitive::usize];
+            // Convert second nibble to hex char
+            buf[i * 2 + 1 + i / 2] = $crate::__private::HEX_DIGITS[(self.0[i] & 0xF) as ::core::primitive::usize];
+
+            // Add dot every 2 bytes except for the last group
+            if i % 2 == 1 && i != $n - 1 {
+              buf[i * 2 + 2 + i / 2] = b'.';
+            }
+            i += 1;
+          }
+
+          buf
+        }
+
+        /// Converts to colon-separated format string.
+        #[cfg(any(feature = "alloc", feature = "std"))]
+        #[cfg_attr(docsrs, doc(cfg(any(feature = "alloc", feature = "std"))))]
+        pub fn to_colon_separated(&self) -> $crate::__private::String {
+          let buf = self.to_colon_separated_array();
+          // SAFETY: The buffer is always valid UTF-8 as it only contains ASCII characters.
+          unsafe { $crate::__private::ToString::to_string(::core::str::from_utf8_unchecked(&buf)) }
+        }
+
+        /// Converts to hyphen-separated format string.
+        #[cfg(any(feature = "alloc", feature = "std"))]
+        #[cfg_attr(docsrs, doc(cfg(any(feature = "alloc", feature = "std"))))]
+        pub fn to_hyphen_separated(&self) -> $crate::__private::String {
+          let buf = self.to_hyphen_separated_array();
+          // SAFETY: The buffer is always valid UTF-8 as it only contains ASCII characters.
+          unsafe { $crate::__private::ToString::to_string(::core::str::from_utf8_unchecked(&buf)) }
+        }
+
+        /// Converts to dot-separated format string.
+        #[cfg(any(feature = "alloc", feature = "std"))]
+        #[cfg_attr(docsrs, doc(cfg(any(feature = "alloc", feature = "std"))))]
+        pub fn to_dot_separated(&self) -> $crate::__private::String {
+          let buf = self.to_dot_separated_array();
+          // SAFETY: The buffer is always valid UTF-8 as it only contains ASCII characters.
+          unsafe { $crate::__private::ToString::to_string(::core::str::from_utf8_unchecked(&buf)) }
+        }
       }
-    }
+
+      impl ::core::str::FromStr for $name {
+        type Err = $crate::__private::paste::paste! { [< Parse $name Error >] };
+
+        #[inline]
+        fn from_str(src: &str) -> ::core::result::Result<Self, Self::Err> {
+          $crate::parse::<$n>(src.as_bytes()).map(Self)
+        }
+      }
+
+      impl ::core::cmp::PartialEq<[::core::primitive::u8]> for $name {
+        #[inline]
+        fn eq(&self, other: &[::core::primitive::u8]) -> bool {
+          self.0.eq(other)
+        }
+      }
+
+      impl ::core::cmp::PartialEq<$name> for [::core::primitive::u8] {
+        #[inline]
+        fn eq(&self, other: &$name) -> bool {
+          other.eq(self)
+        }
+      }
+
+      impl ::core::cmp::PartialEq<&[::core::primitive::u8]> for $name {
+        #[inline]
+        fn eq(&self, other: &&[::core::primitive::u8]) -> bool {
+          ::core::cmp::PartialEq::eq(self, *other)
+        }
+      }
+
+      impl ::core::cmp::PartialEq<$name> for &[::core::primitive::u8] {
+        #[inline]
+        fn eq(&self, other: &$name) -> bool {
+          ::core::cmp::PartialEq::eq(*self, other)
+        }
+      }
+
+      impl ::core::borrow::Borrow<[::core::primitive::u8]> for $name {
+        #[inline]
+        fn borrow(&self) -> &[::core::primitive::u8] {
+          self
+        }
+      }
+
+      impl ::core::ops::Deref for $name {
+        type Target = [::core::primitive::u8];
+
+        #[inline]
+        fn deref(&self) -> &Self::Target {
+          self.as_bytes()
+        }
+      }
+
+      impl ::core::convert::AsRef<[::core::primitive::u8]> for $name {
+        #[inline]
+        fn as_ref(&self) -> &[::core::primitive::u8] {
+          ::core::borrow::Borrow::borrow(self)
+        }
+      }
+
+      impl ::core::convert::From<[::core::primitive::u8; $n]> for $name {
+        #[inline]
+        fn from(addr: [::core::primitive::u8; $n]) -> Self {
+          $name(addr)
+        }
+      }
+
+      impl ::core::convert::From<$name> for [::core::primitive::u8; $n] {
+        #[inline]
+        #[allow(unexpected_cfgs)]
+        fn from(addr: $name) -> Self {
+          addr.0
+        }
+      }
+
+      impl ::core::convert::TryFrom<&str> for $name {
+        type Error = $crate::__private::paste::paste! { [< Parse $name Error >] };
+
+        #[inline]
+        fn try_from(src: &str) -> ::core::result::Result<Self, Self::Error> {
+          <$name as ::core::str::FromStr>::from_str(src)
+        }
+      }
+
+      impl ::core::fmt::Debug for $name {
+        #[inline]
+        fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+          ::core::fmt::Display::fmt(self, f)
+        }
+      }
+
+      impl core::fmt::Display for $name {
+        #[inline]
+        fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+          let buf = self.to_colon_separated_array();
+          write!(
+            f,
+            "{}",
+            // SAFETY: The buffer is always valid UTF-8 as it only contains ASCII characters.
+            unsafe { ::core::str::from_utf8_unchecked(&buf) },
+          )
+        }
+      }
+    };
 
     #[cfg(feature = "serde")]
     const _: () = {
@@ -183,10 +291,11 @@ macro_rules! addr_ty {
           S: $crate::__private::serde::Serializer,
         {
           if serializer.is_human_readable() {
-            let buf = self.to_colon_seperated_array();
-            serializer.serialize_str(::core::str::from_utf8(&buf).unwrap())
+            let buf = self.to_colon_separated_array();
+            // SAFETY: The buffer is always valid UTF-8 as it only contains ASCII characters.
+            serializer.serialize_str(unsafe { ::core::str::from_utf8_unchecked(&buf) })
           } else {
-            <[u8; $n] as $crate::__private::serde::Serialize>::serialize(&self.0, serializer)
+            <[::core::primitive::u8; $n] as $crate::__private::serde::Serialize>::serialize(&self.0, serializer)
           }
         }
       }
@@ -200,12 +309,24 @@ macro_rules! addr_ty {
             let s = <&str as $crate::__private::serde::Deserialize>::deserialize(deserializer)?;
             <$name as ::core::str::FromStr>::from_str(s).map_err($crate::__private::serde::de::Error::custom)
           } else {
-            let bytes = <[u8; $n] as $crate::__private::serde::Deserialize>::deserialize(deserializer)?;
-            Ok($name(bytes))
+            let bytes = <[::core::primitive::u8; $n] as $crate::__private::serde::Deserialize>::deserialize(deserializer)?;
+            ::core::result::Result::Ok($name(bytes))
           }
         }
       }
     };
+
+    #[cfg(feature = "arbitrary")]
+    $crate::__addr_ty_arbitrary! { $name[$n] }
+
+    #[cfg(feature = "quickcheck")]
+    $crate::__addr_ty_quickcheck! { $name[$n] }
+
+    #[cfg(feature = "pyo3")]
+    $crate::__addr_ty_pyo3! { $name[$n] }
+
+    #[cfg(feature = "wasm-bindgen")]
+    $crate::__addr_ty_wasm_bindgen! { $name[$n] }
   }
 }
 
@@ -218,12 +339,47 @@ pub use eui64::*;
 mod infini_band;
 pub use infini_band::*;
 
+#[cfg(feature = "pyo3")]
+mod py;
+#[cfg(feature = "wasm-bindgen")]
+mod wasm;
+
+#[cfg(feature = "arbitrary")]
+mod arbitrary;
+
+#[cfg(feature = "quickcheck")]
+mod quickcheck;
+
 #[doc(hidden)]
 pub mod __private {
-  pub const HEX_DIGITS: &[u8] = b"0123456789abcdef";
+  pub const HEX_DIGITS: &[::core::primitive::u8] = b"0123456789abcdef";
 
   #[cfg(feature = "serde")]
   pub use serde;
+
+  #[cfg(feature = "arbitrary")]
+  pub use arbitrary;
+
+  #[cfg(feature = "quickcheck")]
+  pub use quickcheck;
+
+  #[cfg(feature = "pyo3")]
+  pub use pyo3;
+
+  #[cfg(all(feature = "pyo3", feature = "std"))]
+  pub use std::hash::DefaultHasher;
+  #[cfg(all(feature = "pyo3", not(feature = "std")))]
+  pub type DefaultHasher = ::core::hash::BuildHasherDefault<::core::hash::SipHasher>;
+
+  #[cfg(feature = "wasm-bindgen")]
+  pub use wasm_bindgen;
+
+  #[cfg(any(feature = "alloc", feature = "std"))]
+  pub use std::{
+    boxed::Box,
+    string::{String, ToString},
+    vec::Vec,
+  };
 
   pub use paste;
 }
@@ -232,10 +388,13 @@ pub mod __private {
 const BIG: i32 = 0x7fffffff;
 
 /// Converts a hexadecimal slice to an integer.
-/// Returns a tuple containing:
-/// - The parsed number
-/// - Number of bytes consumed
-pub const fn xtoi(bytes: &[u8]) -> Option<(i32, usize)> {
+///
+/// - Returns a tuple containing:
+///   - The parsed number
+///   - Number of bytes consumed
+/// - Returns `None` if parsing fails.
+#[inline]
+pub const fn xtoi(bytes: &[::core::primitive::u8]) -> Option<(i32, ::core::primitive::usize)> {
   let mut n: i32 = 0;
 
   let mut idx = 0;
@@ -275,21 +434,23 @@ pub const fn xtoi(bytes: &[u8]) -> Option<(i32, usize)> {
 
 /// Converts the next two hex digits of s into a byte.
 /// If s is longer than 2 bytes then the third byte must match e.
-pub const fn xtoi2(s: &str, e: u8) -> Option<u8> {
+///
+/// Returns `None` if parsing fails.
+#[inline]
+pub const fn xtoi2(s: &[u8], e: u8) -> Option<::core::primitive::u8> {
   // Take first two characters and parse them
-  let bytes = s.as_bytes();
-  let num_bytes = bytes.len();
+  let num_bytes = s.len();
 
   // Check if string is longer than 2 chars and third char matches e
-  if num_bytes > 2 && bytes[2] != e {
+  if num_bytes > 2 && s[2] != e {
     return None;
   }
 
   let res = if num_bytes >= 2 {
-    let buf = [bytes[0], bytes[1]];
+    let buf = [s[0], s[1]];
     xtoi(&buf)
   } else {
-    xtoi(bytes)
+    xtoi(s)
   };
 
   match res {
@@ -299,21 +460,22 @@ pub const fn xtoi2(s: &str, e: u8) -> Option<u8> {
 }
 
 #[inline]
-const fn dot_seperated_format_len<const N: usize>() -> usize {
+const fn dot_separated_format_len<const N: ::core::primitive::usize>() -> ::core::primitive::usize {
   N * 2 + (N / 2 - 1)
 }
 
 #[inline]
-const fn colon_seperated_format_len<const N: usize>() -> usize {
+const fn colon_separated_format_len<const N: ::core::primitive::usize>() -> ::core::primitive::usize
+{
   N * 3 - 1
 }
 
 /// ParseError represents an error that occurred while parsing hex address.
 #[derive(Debug, Clone, Eq, PartialEq, thiserror::Error)]
-pub enum ParseError<const N: usize> {
+pub enum ParseError<const N: ::core::primitive::usize> {
   /// Returned when the input string has a invalid length.
-  #[error("invalid length: colon or hyphen separated format requires {ch_len} bytes, dot separated format requires {dlen} bytes, but got {0} bytes", ch_len = colon_seperated_format_len::<N>(), dlen = dot_seperated_format_len::<N>())]
-  InvalidLength(usize),
+  #[error("invalid length: colon or hyphen separated format requires {ch_len} bytes, dot separated format requires {dlen} bytes, but got {0} bytes", ch_len = colon_separated_format_len::<N>(), dlen = dot_separated_format_len::<N>())]
+  InvalidLength(::core::primitive::usize),
   /// Returned when the input string has an invalid seperator.
   #[error("unexpected separator: expected {expected}, but got {actual}")]
   UnexpectedSeparator {
@@ -327,13 +489,13 @@ pub enum ParseError<const N: usize> {
   InvalidSeparator(u8),
   /// Invalid digit.
   #[error("invalid digit: {0:?}")]
-  InvalidHexDigit([u8; 2]),
+  InvalidHexDigit([::core::primitive::u8; 2]),
 }
 
-impl<const N: usize> ParseError<N> {
+impl<const N: ::core::primitive::usize> ParseError<N> {
   /// Returns the length of the address.
   #[inline]
-  pub const fn invalid_length(len: usize) -> Self {
+  pub const fn invalid_length(len: ::core::primitive::usize) -> Self {
     Self::InvalidLength(len)
   }
 
@@ -351,7 +513,7 @@ impl<const N: usize> ParseError<N> {
 
   /// Returns an error for an invalid hex digit.
   #[inline]
-  pub const fn invalid_hex_digit(digit: [u8; 2]) -> Self {
+  pub const fn invalid_hex_digit(digit: [::core::primitive::u8; 2]) -> Self {
     Self::InvalidHexDigit(digit)
   }
 }
@@ -370,14 +532,16 @@ impl<const N: usize> ParseError<N> {
 /// - Dot-separated:
 ///   - `0000.5e00.5301`
 ///   - `0200.5e10.0000.0001`
-pub fn parse<const N: usize>(src: &str) -> Result<[u8; N], ParseError<N>> {
-  let dot_seperated_len = dot_seperated_format_len::<N>();
-  let colon_seperated_len = colon_seperated_format_len::<N>();
+pub fn parse<const N: ::core::primitive::usize>(
+  src: &[u8],
+) -> Result<[::core::primitive::u8; N], ParseError<N>> {
+  let dot_separated_len = dot_separated_format_len::<N>();
+  let colon_separated_len = colon_separated_format_len::<N>();
   let len = src.len();
 
-  let bytes = src.as_bytes();
+  let bytes = src;
   match () {
-    () if len == dot_seperated_len => {
+    () if len == dot_separated_len => {
       let mut hw = [0; N];
       let mut x = 0;
 
@@ -400,7 +564,7 @@ pub fn parse<const N: usize>(src: &str) -> Result<[u8; N], ParseError<N>> {
 
       Ok(hw)
     }
-    () if len == colon_seperated_len => {
+    () if len == colon_separated_len => {
       let mut hw = [0; N];
       let mut x = 0;
 
@@ -432,9 +596,9 @@ pub fn parse<const N: usize>(src: &str) -> Result<[u8; N], ParseError<N>> {
 }
 
 #[cfg(test)]
-struct TestCase<const N: usize> {
+struct TestCase<const N: ::core::primitive::usize> {
   input: &'static str,
-  output: Option<std::vec::Vec<u8>>,
+  output: Option<std::vec::Vec<::core::primitive::u8>>,
   err: Option<ParseError<N>>,
 }
 
@@ -455,10 +619,10 @@ mod tests {
 
   #[test]
   fn test_xtoi2() {
-    assert_eq!(xtoi2("12", b'\0'), Some(0x12));
-    assert_eq!(xtoi2("12x", b'x'), Some(0x12));
-    assert_eq!(xtoi2("12y", b'x'), None);
-    assert_eq!(xtoi2("1", b'\0'), None);
-    assert_eq!(xtoi2("xy", b'\0'), None);
+    assert_eq!(xtoi2(b"12", b'\0'), Some(0x12));
+    assert_eq!(xtoi2(b"12x", b'x'), Some(0x12));
+    assert_eq!(xtoi2(b"12y", b'x'), None);
+    assert_eq!(xtoi2(b"1", b'\0'), None);
+    assert_eq!(xtoi2(b"xy", b'\0'), None);
   }
 }
