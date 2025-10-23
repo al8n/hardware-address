@@ -1,7 +1,7 @@
 <div align="center">
 <h1>Hardware Address</h1>
 </div>
-<parameter name="content"><div align="center">
+<div align="center">
 
 IEEE 802 MAC-48, EUI-48, EUI-64, or a 20-octet IP over InfiniBand link-layer addresses and more.
 
