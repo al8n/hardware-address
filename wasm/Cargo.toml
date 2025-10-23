@@ -1,0 +1,24 @@
+[package]
+name = "wasm"
+version = "0.2.0"
+edition = "2024"
+authors = ["Al Liu <scygliu1@gmail.com>"]
+description = "WebAssembly bindings for hardware-address: IEEE 802 MAC-48, EUI-48, EUI-64, and InfiniBand hardware addresses"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/al8n/hardware-address"
+homepage = "https://github.com/al8n/hardware-address"
+documentation = "https://docs.rs/hardware-address"
+readme = "README.md"
+keywords = ["mac-address", "eui64", "eui48", "hardware-address", "wasm"]
+categories = ["wasm", "network-programming", "embedded"]
+publish = false
+
+[lib]
+name = "hardware_address"
+crate-type = ["cdylib"]
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ["-O4"]
+
+[dependencies]
+hardware-address = { path = "../", version = "0.2.0", features = ["wasm-bindgen", "std"] }

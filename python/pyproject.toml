@@ -39,6 +39,11 @@ Documentation = "https://docs.rs/hardware-address"
 "Bug Tracker" = "https://github.com/al8n/hardware-address/issues"
 "Source Code" = "https://github.com/al8n/hardware-address"
 
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0",
+]
+
 [tool.maturin]
 # Features to enable when building
 features = ["pyo3/extension-module"]

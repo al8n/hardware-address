@@ -17,6 +17,11 @@ Cargo.lock
 
 # WASM build output
 /wasm/pkg/
+/wasm/pkg-nodejs/
+/wasm/pkg-nodejs-temp/
+/wasm/pkg-bundler/
+/wasm/pkg-web/
+/wasm/pkg-dual/
 /wasm/node_modules/
 
 # Python build output
@@ -25,6 +30,9 @@ Cargo.lock
 /python/dist/
 /python/build/
 *.egg-info/
+__pycache__/
+.pytest_cache/
+*.pyc
 
 # General
 .DS_Store
