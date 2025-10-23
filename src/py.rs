@@ -4,7 +4,6 @@ macro_rules! __addr_ty_pyo3 {
   (
     $name:ident[$n:expr]
   ) => {
-    #[cfg(feature = "pyo3")]
     #[allow(clippy::wrong_self_convention)]
     const _: () = {
       use $crate::__private::pyo3::prelude::*;

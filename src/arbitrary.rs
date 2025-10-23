@@ -4,7 +4,6 @@ macro_rules! __addr_ty_arbitrary {
   (
     $name:ident[$n:expr]
   ) => {
-    #[cfg(feature = "arbitrary")]
     const _: () = {
       impl<'a> $crate::__private::arbitrary::Arbitrary<'a> for $name {
         fn arbitrary(

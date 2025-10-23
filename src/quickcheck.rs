@@ -4,7 +4,6 @@ macro_rules! __addr_ty_quickcheck {
   (
     $name:ident[$n:expr]
   ) => {
-    #[cfg(feature = "quickcheck")]
     const _: () = {
       impl $crate::__private::quickcheck::Arbitrary for $name {
         fn arbitrary(g: &mut $crate::__private::quickcheck::Gen) -> Self {
