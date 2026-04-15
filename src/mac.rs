@@ -175,4 +175,114 @@ mod tests {
 
     println!("{:?}", addr);
   }
+
+  // ------------------------------------------------------------------
+  // `arbitrary` / `quickcheck` Arbitrary impls
+  // ------------------------------------------------------------------
+
+  #[cfg(feature = "arbitrary")]
+  #[test]
+  fn arbitrary_is_deterministic() {
+    use arbitrary::{Arbitrary, Unstructured};
+
+    // The generated impl delegates to `<[u8; 6]>::arbitrary`, so the
+    // same input bytes must produce the same output every time.
+    let data = [0xAA; 32];
+    let a = MacAddr::arbitrary(&mut Unstructured::new(&data)).expect("arbitrary should succeed");
+    let b = MacAddr::arbitrary(&mut Unstructured::new(&data)).expect("arbitrary should succeed");
+    assert_eq!(a, b, "arbitrary should be deterministic for a fixed input");
+  }
+
+  #[cfg(feature = "arbitrary")]
+  #[test]
+  fn arbitrary_size_hint_matches_byte_array() {
+    use arbitrary::Arbitrary;
+
+    // The generated impl must forward `size_hint` to the byte array's
+    // — otherwise fuzzers will over- or under-budget the input.
+    let hint = MacAddr::size_hint(0);
+    let expected = <[u8; MAC_ADDRESS_SIZE] as Arbitrary>::size_hint(0);
+    assert_eq!(hint, expected);
+  }
+
+  #[cfg(feature = "arbitrary")]
+  #[test]
+  fn arbitrary_consumes_expected_bytes() {
+    use arbitrary::{Arbitrary, Unstructured};
+
+    // A MacAddr is 6 bytes; pulling one from an Unstructured should
+    // leave `buf.len() - 6` bytes available for the next draw.
+    let data = [1u8, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    let mut u = Unstructured::new(&data);
+    let _first = MacAddr::arbitrary(&mut u).unwrap();
+    let _second = MacAddr::arbitrary(&mut u).unwrap();
+    // Two 6-byte draws from 12 bytes must succeed; a third draw
+    // against an empty buffer would not, but we don't assert on the
+    // exact error kind (that's an `arbitrary` implementation detail).
+  }
+
+  #[cfg(feature = "quickcheck")]
+  #[test]
+  fn quickcheck_arbitrary_roundtrips_through_string() {
+    use quickcheck::{Arbitrary, Gen};
+
+    let mut g = Gen::new(32);
+    for _ in 0..128 {
+      let addr = MacAddr::arbitrary(&mut g);
+      let parsed =
+        MacAddr::try_from(addr.to_string().as_str()).expect("to_string() output must parse back");
+      assert_eq!(addr, parsed);
+    }
+  }
+
+  #[cfg(feature = "quickcheck")]
+  #[test]
+  fn quickcheck_shrink_terminates_and_preserves_length() {
+    use quickcheck::Arbitrary;
+
+    let addr = MacAddr::from_raw([0xFF; MAC_ADDRESS_SIZE]);
+    // Cap the collect so a hypothetical upstream change that made
+    // shrink lazy-infinite can't hang the test suite.
+    let shrinks: Vec<_> = addr.shrink().take(4096).collect();
+    assert!(!shrinks.is_empty(), "non-zero address should yield shrinks");
+    // The impl filters `Vec<u8>::shrink` down to length-N vecs before
+    // rebuilding the tuple struct — every yielded item is therefore a
+    // well-formed MacAddr (implicit by type).
+    for s in &shrinks {
+      assert_eq!(s.octets().len(), MAC_ADDRESS_SIZE);
+    }
+  }
+
+  #[cfg(feature = "quickcheck")]
+  #[test]
+  fn quickcheck_shrink_zero_is_empty() {
+    use quickcheck::Arbitrary;
+
+    // A zero MacAddr is already minimal: each byte's u8::shrink is
+    // empty, and the length-reducing shrinks are filtered out by our
+    // `.filter_map` guard, so the overall iterator must be empty.
+    let zero = MacAddr::from_raw([0; MAC_ADDRESS_SIZE]);
+    let shrinks: Vec<_> = zero.shrink().collect();
+    assert!(
+      shrinks.is_empty(),
+      "zero address should yield no shrinks, got {:?}",
+      shrinks
+    );
+  }
+
+  #[cfg(feature = "quickcheck")]
+  #[test]
+  fn quickcheck_roundtrip_property() {
+    // Smoke-test that the `quickcheck` harness accepts our Arbitrary
+    // impl (the full library integration, not just the trait in
+    // isolation). The property below is the same string-roundtrip as
+    // `quickcheck_arbitrary_roundtrips_through_string`, but driven by
+    // `quickcheck::quickcheck` rather than a hand-rolled loop.
+    fn prop(addr: MacAddr) -> bool {
+      MacAddr::try_from(addr.to_string().as_str())
+        .map(|p| p == addr)
+        .unwrap_or(false)
+    }
+    quickcheck::quickcheck(prop as fn(MacAddr) -> bool);
+  }
 }

@@ -186,4 +186,97 @@ mod tests {
     assert_eq!(addr, addr3);
     println!("{:?}", addr);
   }
+
+  // ------------------------------------------------------------------
+  // `arbitrary` / `quickcheck` Arbitrary impls
+  // ------------------------------------------------------------------
+
+  #[cfg(feature = "arbitrary")]
+  #[test]
+  fn arbitrary_is_deterministic() {
+    use arbitrary::{Arbitrary, Unstructured};
+
+    let data = [0xAA; 64];
+    let a =
+      InfiniBandAddr::arbitrary(&mut Unstructured::new(&data)).expect("arbitrary should succeed");
+    let b =
+      InfiniBandAddr::arbitrary(&mut Unstructured::new(&data)).expect("arbitrary should succeed");
+    assert_eq!(a, b, "arbitrary should be deterministic for a fixed input");
+  }
+
+  #[cfg(feature = "arbitrary")]
+  #[test]
+  fn arbitrary_size_hint_matches_byte_array() {
+    use arbitrary::Arbitrary;
+
+    let hint = InfiniBandAddr::size_hint(0);
+    let expected = <[u8; INFINI_BAND_ADDRESS_SIZE] as Arbitrary>::size_hint(0);
+    assert_eq!(hint, expected);
+  }
+
+  #[cfg(feature = "arbitrary")]
+  #[test]
+  fn arbitrary_consumes_expected_bytes() {
+    use arbitrary::{Arbitrary, Unstructured};
+
+    // Two 20-byte draws fit in a 40-byte buffer.
+    let data = [0xC3u8; 40];
+    let mut u = Unstructured::new(&data);
+    let _first = InfiniBandAddr::arbitrary(&mut u).unwrap();
+    let _second = InfiniBandAddr::arbitrary(&mut u).unwrap();
+  }
+
+  #[cfg(feature = "quickcheck")]
+  #[test]
+  fn quickcheck_arbitrary_roundtrips_through_string() {
+    use quickcheck::{Arbitrary, Gen};
+
+    let mut g = Gen::new(32);
+    for _ in 0..128 {
+      let addr = InfiniBandAddr::arbitrary(&mut g);
+      let parsed = InfiniBandAddr::try_from(addr.to_string().as_str())
+        .expect("to_string() output must parse back");
+      assert_eq!(addr, parsed);
+    }
+  }
+
+  #[cfg(feature = "quickcheck")]
+  #[test]
+  fn quickcheck_shrink_terminates_and_preserves_length() {
+    use quickcheck::Arbitrary;
+
+    let addr = InfiniBandAddr::from_raw([0xFF; INFINI_BAND_ADDRESS_SIZE]);
+    // 20 bytes × per-byte shrink chain can produce many candidates;
+    // the `take` keeps this test fast without affecting what we check.
+    let shrinks: Vec<_> = addr.shrink().take(4096).collect();
+    assert!(!shrinks.is_empty(), "non-zero address should yield shrinks");
+    for s in &shrinks {
+      assert_eq!(s.octets().len(), INFINI_BAND_ADDRESS_SIZE);
+    }
+  }
+
+  #[cfg(feature = "quickcheck")]
+  #[test]
+  fn quickcheck_shrink_zero_is_empty() {
+    use quickcheck::Arbitrary;
+
+    let zero = InfiniBandAddr::from_raw([0; INFINI_BAND_ADDRESS_SIZE]);
+    let shrinks: Vec<_> = zero.shrink().collect();
+    assert!(
+      shrinks.is_empty(),
+      "zero address should yield no shrinks, got {:?}",
+      shrinks
+    );
+  }
+
+  #[cfg(feature = "quickcheck")]
+  #[test]
+  fn quickcheck_roundtrip_property() {
+    fn prop(addr: InfiniBandAddr) -> bool {
+      InfiniBandAddr::try_from(addr.to_string().as_str())
+        .map(|p| p == addr)
+        .unwrap_or(false)
+    }
+    quickcheck::quickcheck(prop as fn(InfiniBandAddr) -> bool);
+  }
 }

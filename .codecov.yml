@@ -6,8 +6,6 @@ ignore:
   - python/
   - src/py.rs
   - src/wasm.rs
-  - src/quickcheck.rs
-  - src/arbitrary.rs
 coverage:
   status:
     project: # Overall project status
