@@ -146,7 +146,7 @@ All three address types (`MacAddr`, `Eui64Addr`, `InfiniBandAddr`) support:
 ./build-npm.sh
 
 # Development/testing build
-wasm-pack build --target nodejs --dev
+wasm-pack build --target nodejs --dev --out-name hardware_address
 ```
 
 ### Testing

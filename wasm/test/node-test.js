@@ -1,5 +1,5 @@
 // For Node.js, we need to use the nodejs target build
-// Run: wasm-pack build --target nodejs --out-dir pkg-nodejs
+// Run: wasm-pack build --target nodejs --out-dir pkg-nodejs --out-name hardware_address
 
 const { MacAddr, Eui64Addr, InfiniBandAddr } = require('../pkg-nodejs/hardware_address.js');
 

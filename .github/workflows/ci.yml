@@ -18,7 +18,8 @@ on:
       - '**.md'
       - '**.txt'
   workflow_dispatch:
-  schedule: [cron: "0 1 */7 * *"]
+  schedule: 
+    - cron: "0 1 1 * *"
 
 env:
   CARGO_TERM_COLOR: always
@@ -39,7 +40,7 @@ jobs:
           - windows-latest
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Install Rust
       # --no-self-update is necessary because the windows environment cannot self-update rustup.exe.
       run: rustup update stable --no-self-update && rustup default stable
@@ -58,7 +59,7 @@ jobs:
           - windows-latest
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Install Rust
       # --no-self-update is necessary because the windows environment cannot self-update rustup.exe.
       run: rustup update stable --no-self-update && rustup default stable
@@ -91,9 +92,9 @@ jobs:
           - wasm32-wasip2
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Cache cargo build and registry
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.cargo/registry
@@ -119,9 +120,9 @@ jobs:
           - windows-latest
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Cache cargo build and registry
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: |
           ~/.cargo/registry
@@ -136,7 +137,7 @@ jobs:
     - name: Install cargo-hack
       run: cargo install cargo-hack
     - name: Cache ~/.cargo
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ~/.cargo
         key: ${{ runner.os }}-coverage-dotcargo
@@ -153,9 +154,9 @@ jobs:
           - windows-latest
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Cache cargo build and registry
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: |
           ~/.cargo/registry
@@ -170,7 +171,7 @@ jobs:
     - name: Install cargo-hack
       run: cargo install cargo-hack
     - name: Cache ~/.cargo
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ~/.cargo
         key: ${{ runner.os }}-coverage-dotcargo
@@ -187,35 +188,65 @@ jobs:
       - cross
       - test
     steps:
-      - uses: actions/checkout@v4
-      - name: Install latest nightly
-        uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v6
+      - name: Install Rust
+        run: rustup update nightly && rustup default nightly
+      - name: Install cargo-tarpaulin
+        # Pin the tarpaulin version so CI and local runs track the same
+        # set of lines. Different tarpaulin versions can produce different
+        # totals (especially around macro-expanded code), which caused
+        # codecov numbers to drift from local runs.
+        uses: taiki-e/install-action@v2
         with:
-          toolchain: nightly
-          override: true
-      - uses: actions-rs/install@v0.1
+          tool: cargo-tarpaulin@0.35.2
+      - name: Cache cargo registry
+        # Intentionally do NOT cache `target/`. Tarpaulin's instrumented
+        # artifacts can get reused across runs even when src/ or tests/
+        # change, which leaves stale `.gcno`-style hit data in the cache
+        # and causes CI to under-report coverage vs local runs.
+        uses: actions/cache@v5
         with:
-          crate: cargo-tarpaulin
-          version: latest
-      - name: Cache ~/.cargo
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo
-          key: ${{ runner.os }}-coverage-dotcargo
-      - name: Cache cargo build
-        uses: actions/cache@v4
-        with:
-          path: target
-          key: ${{ runner.os }}-coverage-cargo-build-target
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-coverage-registry-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-coverage-registry-
+      - name: Print rustc / tarpaulin versions
+        run: |
+          rustc --version
+          cargo tarpaulin --version
+      - name: Force clean build
+        # Belt-and-suspenders: even without a `target/` cache, make sure
+        # tarpaulin always re-instruments this crate from source.
+        run: cargo clean -p hardware-address
       - name: Run tarpaulin
-        uses: actions-rs/cargo@v1
         env:
           RUSTFLAGS: "--cfg tarpaulin"
+        # `--exclude python --exclude wasm`: the binding subcrates
+        # depend on `hardware-address` with their respective binding
+        # features (`pyo3`, `wasm-bindgen`) enabled. Under `--workspace`,
+        # cargo's feature unification would turn those on in the root
+        # crate as well — and linking a test binary that references
+        # pyo3's `extension-module` Python symbols (`PyBool_Type`,
+        # `_Py_TrueStruct`, …) fails because those symbols are only
+        # provided by the Python interpreter at load time. Excluding
+        # both subcrates avoids the feature-unification trap; binding
+        # coverage is handled by pytest and `wasm-pack test`.
+        run: cargo tarpaulin -p hardware-address --features serde,arbitrary,quickcheck --run-types lib --run-types tests --run-types doctests --workspace --exclude python --exclude wasm --out xml
+      - name: Upload coverage report artifact
+        # Lets us download the exact cobertura.xml the CI produced and
+        # diff it locally against a local tarpaulin run — useful when
+        # codecov's reported number and local runs disagree.
+        if: always()
+        uses: actions/upload-artifact@v7
         with:
-          command: tarpaulin
-          args: --features serde --run-types tests --run-types doctests -p hardware-address --out xml
+          name: cobertura-xml
+          path: cobertura.xml
+          if-no-files-found: warn
+          retention-days: 14
       - name: Upload to codecov.io
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: ${{ github.repository }}
