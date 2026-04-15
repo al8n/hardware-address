@@ -39,7 +39,7 @@ jobs:
           ./test-dual.sh
 
       - name: Upload npm package artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: npm-package
           path: wasm/pkg-dual
@@ -63,10 +63,14 @@ jobs:
 
       - name: Build for ${{ matrix.target }}
         working-directory: wasm
-        run: wasm-pack build --target ${{ matrix.target }} --release --out-dir pkg-${{ matrix.target }}
+        # `--out-name hardware_address` keeps the npm-side filenames
+        # stable regardless of the crate's `[lib] name`, which is set
+        # to `wasm_hardware_address` so rustdoc's workspace doctest
+        # build doesn't collide with the root `hardware_address` rlib.
+        run: wasm-pack build --target ${{ matrix.target }} --release --out-dir pkg-${{ matrix.target }} --out-name hardware_address
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: wasm-${{ matrix.target }}
           path: wasm/pkg-${{ matrix.target }}
@@ -110,7 +114,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Upload release artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: npm-release-package
           path: wasm/pkg-dual

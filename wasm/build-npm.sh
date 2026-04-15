@@ -13,9 +13,13 @@ echo "WASM directory: $SCRIPT_DIR"
 # Build from wasm directory
 cd "$SCRIPT_DIR"
 
-# Build for bundler (default for npm)
+# Build for bundler (default for npm). `--out-name hardware_address`
+# makes the output files match the npm package's consumer-facing name
+# regardless of the internal `[lib] name = "wasm_hardware_address"`
+# (which exists to avoid an rlib collision with the root crate during
+# workspace doctest builds).
 echo "Building for bundler target..."
-wasm-pack build --target bundler --release --out-dir pkg
+wasm-pack build --target bundler --release --out-dir pkg --out-name hardware_address
 
 # Copy the npm-specific README to pkg directory
 echo "Copying README..."

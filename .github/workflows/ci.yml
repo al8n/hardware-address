@@ -223,13 +223,23 @@ jobs:
       - name: Run tarpaulin
         env:
           RUSTFLAGS: "--cfg tarpaulin"
-        run: cargo tarpaulin -p hardware-address --features serde --run-types lib --run-types tests --run-types doctests --workspace --out xml
+        # `--exclude python --exclude wasm`: the binding subcrates
+        # depend on `hardware-address` with their respective binding
+        # features (`pyo3`, `wasm-bindgen`) enabled. Under `--workspace`,
+        # cargo's feature unification would turn those on in the root
+        # crate as well — and linking a test binary that references
+        # pyo3's `extension-module` Python symbols (`PyBool_Type`,
+        # `_Py_TrueStruct`, …) fails because those symbols are only
+        # provided by the Python interpreter at load time. Excluding
+        # both subcrates avoids the feature-unification trap; binding
+        # coverage is handled by pytest and `wasm-pack test`.
+        run: cargo tarpaulin -p hardware-address --features serde --run-types lib --run-types tests --run-types doctests --workspace --exclude python --exclude wasm --out xml
       - name: Upload coverage report artifact
         # Lets us download the exact cobertura.xml the CI produced and
         # diff it locally against a local tarpaulin run — useful when
         # codecov's reported number and local runs disagree.
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: cobertura-xml
           path: cobertura.xml

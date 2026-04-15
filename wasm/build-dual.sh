@@ -11,13 +11,21 @@ cd "$SCRIPT_DIR"
 echo "Cleaning previous builds..."
 rm -rf pkg-dual
 
-# Build for bundler (ESM)
+# Build for bundler (ESM).
+#
+# `--out-name hardware_address` forces wasm-pack to name its outputs
+# `hardware_address.{js,d.ts}` + `hardware_address_bg.wasm` regardless
+# of the crate's `[lib] name`. We set `[lib] name = "wasm_hardware_address"`
+# in Cargo.toml so rustdoc's workspace doctest build doesn't collide
+# with the root `hardware_address` rlib (E0464); without `--out-name`
+# the npm-side filenames would change to match, breaking every
+# consumer's `import 'hardware-address'`.
 echo "Building for bundler target (ESM)..."
-wasm-pack build --target bundler --release --out-dir pkg-dual
+wasm-pack build --target bundler --release --out-dir pkg-dual --out-name hardware_address
 
 # Build for nodejs (CommonJS) into a temporary directory
 echo "Building for Node.js target (CommonJS)..."
-wasm-pack build --target nodejs --release --out-dir pkg-nodejs-temp
+wasm-pack build --target nodejs --release --out-dir pkg-nodejs-temp --out-name hardware_address
 
 # Copy the Node.js specific files to a node subdirectory
 echo "Setting up dual package structure..."

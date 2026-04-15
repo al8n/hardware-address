@@ -27,9 +27,9 @@
     "pkg/**/*"
   ],
   "scripts": {
-    "build": "wasm-pack build --target bundler --features wasm-bindgen --release",
-    "build:node": "wasm-pack build --target nodejs --features wasm-bindgen --release --out-dir pkg-node",
-    "build:web": "wasm-pack build --target web --features wasm-bindgen --release --out-dir pkg-web",
+    "build": "wasm-pack build --target bundler --features wasm-bindgen --release --out-name hardware_address",
+    "build:node": "wasm-pack build --target nodejs --features wasm-bindgen --release --out-dir pkg-node --out-name hardware_address",
+    "build:web": "wasm-pack build --target web --features wasm-bindgen --release --out-dir pkg-web --out-name hardware_address",
     "build:all": "npm run build && npm run build:node && npm run build:web",
     "test": "wasm-pack test --node --features wasm-bindgen",
     "prepublishOnly": "npm run build"

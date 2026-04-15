@@ -65,7 +65,7 @@ jobs:
           manylinux: auto
           working-directory: python
       - name: Upload wheels
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: wheels-linux-${{ matrix.platform.target }}
           path: python/dist
@@ -97,7 +97,7 @@ jobs:
           manylinux: musllinux_1_2
           working-directory: python
       - name: Upload wheels
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: wheels-musllinux-${{ matrix.platform.target }}
           path: python/dist
@@ -125,7 +125,7 @@ jobs:
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
           working-directory: python
       - name: Upload wheels
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: wheels-windows-${{ matrix.platform.target }}
           path: python/dist
@@ -150,7 +150,7 @@ jobs:
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
           working-directory: python
       - name: Upload wheels
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: wheels-macos-${{ matrix.platform.target }}
           path: python/dist
@@ -166,7 +166,7 @@ jobs:
           args: --out dist
           working-directory: python
       - name: Upload sdist
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: wheels-sdist
           path: python/dist
@@ -187,7 +187,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           path: dist
           pattern: wheels-*
