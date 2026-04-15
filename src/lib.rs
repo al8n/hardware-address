@@ -37,7 +37,12 @@ macro_rules! addr_ty {
 
         $(#[$attr])*
         #[derive(::core::clone::Clone, ::core::marker::Copy, ::core::cmp::Eq, ::core::cmp::PartialEq, ::core::cmp::Ord, ::core::cmp::PartialOrd, ::core::hash::Hash)]
-        #[cfg_attr(feature = "pyo3", $crate::__private::pyo3::pyclass(crate = "__pyo3"))]
+        // `from_py_object` explicitly opts in to the `FromPyObject`
+        // derive that pyo3 used to generate automatically for `Clone`
+        // types. Address types are tiny (`[u8; N]` with `N` in {6, 8, 20}),
+        // so the Clone-based conversion is effectively free and lets them
+        // be passed as arguments to `#[pyfunction]` / `#[pymethods]`.
+        #[cfg_attr(feature = "pyo3", $crate::__private::pyo3::pyclass(crate = "__pyo3", from_py_object))]
         #[cfg_attr(feature = "wasm-bindgen", $crate::__private::wasm_bindgen::prelude::wasm_bindgen(wasm_bindgen = __wasm_bindgen))]
         #[repr(transparent)]
         pub struct $name(pub(crate) [::core::primitive::u8; $n]);
@@ -352,7 +357,47 @@ mod quickcheck;
 
 #[doc(hidden)]
 pub mod __private {
-  pub const HEX_DIGITS: &[::core::primitive::u8] = b"0123456789abcdef";
+  /// Lowercase ASCII hex digits for formatting.
+  pub const HEX_DIGITS: [::core::primitive::u8; 16] = *b"0123456789abcdef";
+
+  /// Lookup table: ASCII byte → nibble value (`0..=15`), or `0xFF` for
+  /// anything that isn't a valid hex digit. Branch-free alternative to
+  /// chained `match` arms.
+  pub const HEX_VAL: [::core::primitive::u8; 256] = {
+    let mut t = [0xFFu8; 256];
+    let mut i = 0;
+    while i < 10 {
+      t[b'0' as usize + i] = i as u8;
+      i += 1;
+    }
+    let mut i = 0;
+    while i < 6 {
+      t[b'a' as usize + i] = (i + 10) as u8;
+      t[b'A' as usize + i] = (i + 10) as u8;
+      i += 1;
+    }
+    t
+  };
+
+  /// Parse two ASCII hex characters into a single byte.
+  ///
+  /// Returns `None` if either character isn't a valid hex digit. Used
+  /// by [`crate::parse`] and (internally) by [`crate::xtoi2`].
+  #[inline]
+  pub const fn hex_byte(
+    hi: ::core::primitive::u8,
+    lo: ::core::primitive::u8,
+  ) -> ::core::option::Option<::core::primitive::u8> {
+    let hi_val = HEX_VAL[hi as usize];
+    if hi_val == 0xFF {
+      return ::core::option::Option::None;
+    }
+    let lo_val = HEX_VAL[lo as usize];
+    if lo_val == 0xFF {
+      return ::core::option::Option::None;
+    }
+    ::core::option::Option::Some((hi_val << 4) | lo_val)
+  }
 
   #[cfg(feature = "serde")]
   pub use serde;
@@ -384,41 +429,42 @@ pub mod __private {
   pub use paste;
 }
 
-/// Maximum value to prevent overflow
-const BIG: i32 = 0x7fffffff;
-
 /// Converts a hexadecimal slice to an integer.
 ///
-/// - Returns a tuple containing:
-///   - The parsed number
-///   - Number of bytes consumed
-/// - Returns `None` if parsing fails.
+/// Reads as many leading ASCII hex digits from `bytes` as fit in an
+/// `i32` and stops at the first non-hex byte.
+///
+/// Returns a tuple of `(parsed, consumed)` — the value and the number
+/// of bytes consumed — or `None` if:
+///
+/// - `bytes` is empty,
+/// - the first byte isn't a valid hex digit, or
+/// - the accumulated value would overflow `i32` (i.e. exceed
+///   `i32::MAX`).
 #[inline]
 pub const fn xtoi(bytes: &[::core::primitive::u8]) -> Option<(i32, ::core::primitive::usize)> {
-  let mut n: i32 = 0;
-
+  // Use `u32` internally so `n * 16 + digit` never panics on overflow
+  // in debug builds. We still cap at `i32::MAX` to preserve the
+  // public signature's non-negative `i32` contract.
+  let mut n: u32 = 0;
   let mut idx = 0;
   let num_bytes = bytes.len();
 
   while idx < num_bytes {
-    let c = bytes[idx];
-    match c {
-      b'0'..=b'9' => {
-        n *= 16;
-        n += (c - b'0') as i32;
-      }
-      b'a'..=b'f' => {
-        n *= 16;
-        n += (c - b'a') as i32 + 10;
-      }
-      b'A'..=b'F' => {
-        n *= 16;
-        n += (c - b'A') as i32 + 10;
-      }
-      _ => break,
+    let digit = __private::HEX_VAL[bytes[idx] as usize];
+    if digit == 0xFF {
+      break;
     }
 
-    if n == BIG {
+    n = match n.checked_mul(16) {
+      Some(v) => v,
+      None => return None,
+    };
+    n = match n.checked_add(digit as u32) {
+      Some(v) => v,
+      None => return None,
+    };
+    if n > i32::MAX as u32 {
       return None;
     }
 
@@ -429,34 +475,23 @@ pub const fn xtoi(bytes: &[::core::primitive::u8]) -> Option<(i32, ::core::primi
     return None;
   }
 
-  Some((n, idx))
+  Some((n as i32, idx))
 }
 
-/// Converts the next two hex digits of s into a byte.
-/// If s is longer than 2 bytes then the third byte must match e.
+/// Converts the next two hex digits of `s` into a byte.
 ///
-/// Returns `None` if parsing fails.
+/// If `s` is longer than 2 bytes then the third byte must match `e`.
+/// Returns `None` if either of the first two bytes isn't a valid hex
+/// digit, or if `s.len() > 2` and `s[2] != e`.
 #[inline]
 pub const fn xtoi2(s: &[u8], e: u8) -> Option<::core::primitive::u8> {
-  // Take first two characters and parse them
-  let num_bytes = s.len();
-
-  // Check if string is longer than 2 chars and third char matches e
-  if num_bytes > 2 && s[2] != e {
+  if s.len() < 2 {
     return None;
   }
-
-  let res = if num_bytes >= 2 {
-    let buf = [s[0], s[1]];
-    xtoi(&buf)
-  } else {
-    xtoi(s)
-  };
-
-  match res {
-    Some((n, 2)) => Some(n as u8),
-    _ => None,
+  if s.len() > 2 && s[2] != e {
+    return None;
   }
+  __private::hex_byte(s[0], s[1])
 }
 
 #[inline]
@@ -532,67 +567,72 @@ impl<const N: ::core::primitive::usize> ParseError<N> {
 /// - Dot-separated:
 ///   - `0000.5e00.5301`
 ///   - `0200.5e10.0000.0001`
-pub fn parse<const N: ::core::primitive::usize>(
+pub const fn parse<const N: ::core::primitive::usize>(
   src: &[u8],
 ) -> Result<[::core::primitive::u8; N], ParseError<N>> {
   let dot_separated_len = dot_separated_format_len::<N>();
   let colon_separated_len = colon_separated_format_len::<N>();
   let len = src.len();
 
-  let bytes = src;
-  match () {
-    () if len == dot_separated_len => {
-      let mut hw = [0; N];
-      let mut x = 0;
+  if len == dot_separated_len {
+    let mut hw = [0u8; N];
+    let mut x = 0usize;
+    let mut i = 0usize;
 
-      for i in (0..N).step_by(2) {
-        if x + 4 != len && bytes[x + 4] != b'.' {
-          return Err(ParseError::unexpected_separator(b'.', bytes[x + 4]));
-        }
-
-        match xtoi2(&src[x..x + 2], 0) {
-          Some(byte) => hw[i] = byte,
-          None => return Err(ParseError::invalid_hex_digit([bytes[x], bytes[x + 1]])),
-        }
-        match xtoi2(&src[x + 2..], b'.') {
-          Some(byte) => hw[i + 1] = byte,
-          None => return Err(ParseError::invalid_hex_digit([bytes[x + 2], bytes[x + 3]])),
-        }
-
-        x += 5;
+    while i < N {
+      // Validate the `.` separator between each 4-hex-digit group,
+      // except when we're at the end of the input.
+      if x + 4 < len && src[x + 4] != b'.' {
+        return Err(ParseError::unexpected_separator(b'.', src[x + 4]));
       }
 
-      Ok(hw)
+      match __private::hex_byte(src[x], src[x + 1]) {
+        Some(byte) => hw[i] = byte,
+        None => return Err(ParseError::invalid_hex_digit([src[x], src[x + 1]])),
+      }
+      match __private::hex_byte(src[x + 2], src[x + 3]) {
+        Some(byte) => hw[i + 1] = byte,
+        None => return Err(ParseError::invalid_hex_digit([src[x + 2], src[x + 3]])),
+      }
+
+      x += 5;
+      i += 2;
     }
-    () if len == colon_separated_len => {
-      let mut hw = [0; N];
-      let mut x = 0;
 
-      let sep = bytes[2];
-      if !(sep == b':' || sep == b'-') {
-        return Err(ParseError::invalid_separator(sep));
-      }
-
-      #[allow(clippy::needless_range_loop)]
-      for i in 0..N {
-        if x + 2 != len {
-          let csep = bytes[x + 2];
-          if csep != sep {
-            return Err(ParseError::unexpected_separator(sep, csep));
-          }
-        }
-
-        match xtoi2(&src[x..], sep) {
-          Some(byte) => hw[i] = byte,
-          None => return Err(ParseError::invalid_hex_digit([bytes[x], bytes[x + 1]])),
-        }
-        x += 3;
-      }
-
-      Ok(hw)
-    }
-    _ => Err(ParseError::invalid_length(len)),
+    return Ok(hw);
   }
+
+  if len == colon_separated_len {
+    let sep = src[2];
+    if sep != b':' && sep != b'-' {
+      return Err(ParseError::invalid_separator(sep));
+    }
+
+    let mut hw = [0u8; N];
+    let mut x = 0usize;
+    let mut i = 0usize;
+
+    while i < N {
+      if x + 2 < len {
+        let csep = src[x + 2];
+        if csep != sep {
+          return Err(ParseError::unexpected_separator(sep, csep));
+        }
+      }
+
+      match __private::hex_byte(src[x], src[x + 1]) {
+        Some(byte) => hw[i] = byte,
+        None => return Err(ParseError::invalid_hex_digit([src[x], src[x + 1]])),
+      }
+
+      x += 3;
+      i += 1;
+    }
+
+    return Ok(hw);
+  }
+
+  Err(ParseError::invalid_length(len))
 }
 
 #[cfg(test)]
@@ -624,5 +664,71 @@ mod tests {
     assert_eq!(xtoi2(b"12y", b'x'), None);
     assert_eq!(xtoi2(b"1", b'\0'), None);
     assert_eq!(xtoi2(b"xy", b'\0'), None);
+  }
+
+  /// Regression test for the pre-fix overflow bug: `xtoi("FFFFFFFF")`
+  /// used to silently return `Some((-1, 8))` in release builds and
+  /// panic in debug builds due to the broken `if n == BIG` equality
+  /// check being placed *after* multiplication. The fix uses checked
+  /// arithmetic and caps at `i32::MAX`.
+  #[test]
+  fn test_xtoi_overflow_is_detected() {
+    // 8 'F's = 0xFFFF_FFFF, exceeds i32::MAX.
+    assert_eq!(xtoi(b"FFFFFFFF"), None);
+    // 7 'F's = 0x0FFF_FFFF, fits in i32.
+    assert_eq!(xtoi(b"FFFFFFF"), Some((0x0FFF_FFFF, 7)));
+    // 8 '7's + digits just below i32::MAX also fine.
+    assert_eq!(xtoi(b"7FFFFFFF"), Some((0x7FFF_FFFF, 8)));
+    // One above i32::MAX must reject.
+    assert_eq!(xtoi(b"80000000"), None);
+    // Long all-hex string rejects cleanly instead of wrapping/panicking.
+    assert_eq!(xtoi(b"0123456789ABCDEF"), None);
+  }
+
+  /// `parse` is `const fn`, so we can build `MacAddr`-style constants
+  /// at compile time. This test exercises that directly.
+  #[test]
+  fn test_parse_is_const() {
+    const MAC: [u8; 6] = match parse::<6>(b"00:11:22:33:44:55") {
+      Ok(v) => v,
+      Err(_) => panic!(),
+    };
+    assert_eq!(MAC, [0x00, 0x11, 0x22, 0x33, 0x44, 0x55]);
+
+    // Also covers the hyphen-separated form.
+    const MAC2: [u8; 6] = match parse::<6>(b"aa-bb-cc-dd-ee-ff") {
+      Ok(v) => v,
+      Err(_) => panic!(),
+    };
+    assert_eq!(MAC2, [0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF]);
+
+    // And the dot-separated form.
+    const MAC3: [u8; 6] = match parse::<6>(b"0000.5e00.5301") {
+      Ok(v) => v,
+      Err(_) => panic!(),
+    };
+    assert_eq!(MAC3, [0x00, 0x00, 0x5E, 0x00, 0x53, 0x01]);
+  }
+
+  /// Fast-path `hex_byte` sanity: all valid digits, plus a few
+  /// invalids at boundary values.
+  #[test]
+  fn test_hex_byte() {
+    use crate::__private::hex_byte;
+
+    assert_eq!(hex_byte(b'0', b'0'), Some(0x00));
+    assert_eq!(hex_byte(b'f', b'f'), Some(0xFF));
+    assert_eq!(hex_byte(b'F', b'F'), Some(0xFF));
+    assert_eq!(hex_byte(b'1', b'a'), Some(0x1A));
+    assert_eq!(hex_byte(b'1', b'A'), Some(0x1A));
+
+    // Invalid first nibble.
+    assert_eq!(hex_byte(b'g', b'0'), None);
+    assert_eq!(hex_byte(b'/', b'0'), None); // '/' = '0' - 1
+    assert_eq!(hex_byte(b':', b'0'), None); // ':' = '9' + 1
+                                            // Invalid second nibble.
+    assert_eq!(hex_byte(b'0', b'g'), None);
+    // Both invalid.
+    assert_eq!(hex_byte(0, 0), None);
   }
 }

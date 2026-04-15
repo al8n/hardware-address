@@ -14,11 +14,14 @@ categories = ["wasm", "network-programming", "embedded"]
 publish = false
 
 [lib]
-name = "hardware_address"
+# Named to not collide with the root `hardware_address` crate (which
+# we depend on). Without this, rustdoc --test / tarpaulin fail with
+# E0464 "multiple candidates for `rlib` dependency `hardware_address`".
+name = "wasm_hardware_address"
 crate-type = ["cdylib"]
 
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = ["-O4"]
 
 [dependencies]
-hardware-address = { path = "../", version = "0.2.0", features = ["wasm-bindgen", "std"] }
+hardware-address = { path = "../", version = "0.3", features = ["wasm-bindgen", "std"] }
