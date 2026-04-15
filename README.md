@@ -23,26 +23,26 @@ IEEE 802 MAC-48, EUI-48, EUI-64, or a 20-octet IP over InfiniBand link-layer add
 
 ```toml
 [dependencies]
-hardware-address = "0.2"
+hardware-address = "0.3"
 ```
 
 **Optional features:**
 
 ```toml
 # Serialization support
-hardware-address = { version = "0.2", features = ["serde"] }
+hardware-address = { version = "0.3", features = ["serde"] }
 
 # arbitrary support
-hardware-address = { version = "0.2", features = ["arbitrary"] }
+hardware-address = { version = "0.3", features = ["arbitrary"] }
 
 # quickcheck support
-hardware-address = { version = "0.2", features = ["quickcheck"] }
+hardware-address = { version = "0.3", features = ["quickcheck"] }
 
 # Python bindings
-hardware-address = { version = "0.2", features = ["pyo3"] }
+hardware-address = { version = "0.3", features = ["pyo3"] }
 
 # WebAssembly bindings
-hardware-address = { version = "0.2", features = ["wasm-bindgen"] }
+hardware-address = { version = "0.3", features = ["wasm-bindgen"] }
 ```
 
 ### Python
@@ -171,7 +171,7 @@ Apache License (Version 2.0).
 
 See [LICENSE-APACHE](LICENSE-APACHE), [LICENSE-MIT](LICENSE-MIT) for details.
 
-Copyright (c) 2025 Al Liu.
+Copyright (c) 2026 Al Liu.
 
 [Github-url]: https://github.com/al8n/hardware-address/
 [CI-url]: https://github.com/al8n/hardware-address/actions/workflows/ci.yml
