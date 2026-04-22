@@ -233,7 +233,7 @@ jobs:
         # provided by the Python interpreter at load time. Excluding
         # both subcrates avoids the feature-unification trap; binding
         # coverage is handled by pytest and `wasm-pack test`.
-        run: cargo tarpaulin -p hardware-address --features serde,arbitrary,quickcheck --run-types lib --run-types tests --run-types doctests --workspace --exclude python --exclude wasm --out xml
+        run: cargo tarpaulin -p hardware-address --engine llvm --features serde,arbitrary,quickcheck --run-types lib --run-types tests --run-types doctests --workspace --exclude python --exclude wasm --out xml
       - name: Upload coverage report artifact
         # Lets us download the exact cobertura.xml the CI produced and
         # diff it locally against a local tarpaulin run — useful when
