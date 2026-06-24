@@ -15,7 +15,7 @@ name = "py_hardware_address"
 crate-type = ["cdylib", "lib"]
 
 [dependencies]
-pyo3 = "0.28"
+pyo3 = "0.29"
 hardware-address = { path = "../", version = "0.3", features = ["pyo3"] }
 
 [build-dependencies]
