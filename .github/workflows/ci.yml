@@ -196,7 +196,7 @@ jobs:
         # set of lines. Different tarpaulin versions can produce different
         # totals (especially around macro-expanded code), which caused
         # codecov numbers to drift from local runs.
-        uses: taiki-e/install-action@v2
+        uses: taiki-e/install-action@v2.85.3
         with:
           tool: cargo-tarpaulin@0.35.2
       - name: Cache cargo registry
