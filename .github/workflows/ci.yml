@@ -191,19 +191,16 @@ jobs:
       - uses: actions/checkout@v7
       - name: Install Rust
         run: rustup update nightly && rustup default nightly
-      - name: Install cargo-tarpaulin
-        # Pin the tarpaulin version so CI and local runs track the same
-        # set of lines. Different tarpaulin versions can produce different
-        # totals (especially around macro-expanded code), which caused
-        # codecov numbers to drift from local runs.
+      - name: Install cargo-llvm-cov
+        # Pin cargo-llvm-cov so CI and local runs use the same coverage
+        # tooling and produce deterministic reports.
         uses: taiki-e/install-action@v2
         with:
-          tool: cargo-tarpaulin@0.35.2
+          tool: cargo-llvm-cov@0.9.1
       - name: Cache cargo registry
-        # Intentionally do NOT cache `target/`. Tarpaulin's instrumented
-        # artifacts can get reused across runs even when src/ or tests/
-        # change, which leaves stale `.gcno`-style hit data in the cache
-        # and causes CI to under-report coverage vs local runs.
+        # Intentionally do NOT cache `target/`. Instrumented coverage
+        # artifacts should not be reused across runs because stale profile
+        # data can distort coverage results.
         uses: actions/cache@v6
         with:
           path: |
@@ -212,17 +209,11 @@ jobs:
           key: ${{ runner.os }}-coverage-registry-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-coverage-registry-
-      - name: Print rustc / tarpaulin versions
+      - name: Print rustc / cargo-llvm-cov versions
         run: |
           rustc --version
-          cargo tarpaulin --version
-      - name: Force clean build
-        # Belt-and-suspenders: even without a `target/` cache, make sure
-        # tarpaulin always re-instruments this crate from source.
-        run: cargo clean -p hardware-address
-      - name: Run tarpaulin
-        env:
-          RUSTFLAGS: "--cfg tarpaulin"
+          cargo llvm-cov --version
+      - name: Run cargo-llvm-cov
         # `--exclude python --exclude wasm`: the binding subcrates
         # depend on `hardware-address` with their respective binding
         # features (`pyo3`, `wasm-bindgen`) enabled. Under `--workspace`,
@@ -233,21 +224,23 @@ jobs:
         # provided by the Python interpreter at load time. Excluding
         # both subcrates avoids the feature-unification trap; binding
         # coverage is handled by pytest and `wasm-pack test`.
-        run: cargo tarpaulin -p hardware-address --engine llvm --features serde,arbitrary,quickcheck --run-types lib --run-types tests --run-types doctests --workspace --exclude python --exclude wasm --out xml
+        run: cargo llvm-cov --workspace --exclude python --exclude wasm --features serde,arbitrary,quickcheck --doctests --lcov --output-path lcov.info
       - name: Upload coverage report artifact
-        # Lets us download the exact cobertura.xml the CI produced and
-        # diff it locally against a local tarpaulin run — useful when
+        # Lets us download the exact lcov.info cargo-llvm-cov produced and
+        # diff it locally against a local coverage run — useful when
         # codecov's reported number and local runs disagree.
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: cobertura-xml
-          path: cobertura.xml
+          name: lcov-info
+          path: lcov.info
           if-no-files-found: warn
           retention-days: 14
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v7
         with:
+          files: lcov.info
+          disable_search: true
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: ${{ github.repository }}
           fail_ci_if_error: true

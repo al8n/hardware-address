@@ -7,7 +7,7 @@ publish = false
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
 # Named to not collide with the root `hardware_address` crate (which
-# we depend on). Without this, rustdoc --test / tarpaulin fail with
+# we depend on). Without this, rustdoc --test / coverage runs fail with
 # E0464 "multiple candidates for `rlib` dependency `hardware_address`".
 # The Python import name is controlled by `module-name` in
 # pyproject.toml, so this rename does not affect downstream users.
