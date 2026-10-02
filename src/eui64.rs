@@ -1,6 +1,8 @@
 addr_ty!(
   /// Represents a physical EUI-64 format address.
-  Eui64Addr[8]
+  __eui64_addr__,
+  Eui64Addr,
+  ParseEui64AddrError[8]
 );
 
 #[cfg(test)]
@@ -8,7 +10,9 @@ mod tests {
   use super::*;
   use crate::{ParseError, TestCase};
 
-  use std::{string::ToString, vec, vec::Vec};
+  #[cfg(any(feature = "alloc", feature = "std"))]
+  use std::string::ToString;
+  use std::{vec, vec::Vec};
 
   const EUI64_ADDRESS_SIZE: usize = 8;
 
@@ -46,12 +50,12 @@ mod tests {
       TestCase {
         input: "xx00.5e10.0000.0001",
         output: None,
-        err: Some(ParseError::InvalidHexDigit([b'x', b'x'])),
+        err: Some(ParseError::InvalidHexDigit(*b"xx")),
       },
       TestCase {
         input: "00xx.5e10.0000.0001",
         output: None,
-        err: Some(ParseError::InvalidHexDigit([b'x', b'x'])),
+        err: Some(ParseError::InvalidHexDigit(*b"xx")),
       },
     ]
   }
@@ -72,7 +76,8 @@ mod tests {
             test.input
           );
 
-          // Test round-trip if this was a valid case
+          #[cfg(any(feature = "alloc", feature = "std"))]
+          // Test round-trip if this was a valid case.
           if test.err.is_none() {
             let formatted = out.to_string();
             let round_trip = Eui64Addr::try_from(formatted.as_str());
@@ -122,6 +127,7 @@ mod tests {
     assert_eq!(addr.octets(), [0; EUI64_ADDRESS_SIZE]);
   }
 
+  #[cfg(any(feature = "alloc", feature = "std"))]
   #[test]
   fn formatted() {
     let addr = Eui64Addr::try_from("02:00:5e:10:00:00:00:01").unwrap();
@@ -153,22 +159,31 @@ mod tests {
   #[cfg(feature = "serde")]
   #[test]
   fn serde_human_unreadable() {
-    let addr = Eui64Addr::try_from("02:00:5e:10:00:00:00:01").unwrap();
-    let encoded = bincode::serde::encode_to_vec(addr, bincode::config::standard()).unwrap();
-    assert_eq!(encoded, [2, 0, 94, 16, 0, 0, 0, 1]);
-    assert_eq!(addr.octets(), [2, 0, 94, 16, 0, 0, 0, 1]);
+    use serde_test::{assert_tokens, Configure, Token};
 
-    let addr2: Eui64Addr = bincode::serde::decode_from_slice(&encoded, bincode::config::standard())
-      .unwrap()
-      .0;
-    assert_eq!(addr, addr2);
+    let addr = Eui64Addr::try_from("02:00:5e:10:00:00:00:01").unwrap();
+    assert_tokens(
+      &addr.compact(),
+      &[
+        Token::Tuple { len: 8 },
+        Token::U8(2),
+        Token::U8(0),
+        Token::U8(94),
+        Token::U8(16),
+        Token::U8(0),
+        Token::U8(0),
+        Token::U8(0),
+        Token::U8(1),
+        Token::TupleEnd,
+      ],
+    );
+    assert_eq!(addr.octets(), [2, 0, 94, 16, 0, 0, 0, 1]);
 
     let addr3 = Eui64Addr::from([2, 0, 94, 16, 0, 0, 0, 1]);
     assert_eq!(addr, addr3);
 
     let octets: [u8; EUI64_ADDRESS_SIZE] = addr3.into();
     assert_eq!(octets, addr3.octets());
-    println!("{:?}", addr);
   }
 
   // ------------------------------------------------------------------

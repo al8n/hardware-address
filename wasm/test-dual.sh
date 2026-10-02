@@ -19,14 +19,7 @@ echo ""
 echo "Step 3: Testing ESM (import) support..."
 echo "Note: ESM build is primarily for bundlers (webpack, vite, rollup)."
 echo "Testing with Node.js experimental WASM modules flag..."
-node --experimental-wasm-modules test/test-esm.mjs 2>&1 || {
-  echo ""
-  echo "⚠️  ESM direct import in Node.js requires --experimental-wasm-modules flag"
-  echo "   This is expected - ESM build is designed for bundlers, not direct Node.js use"
-  echo "   For Node.js without bundler, use CommonJS (require)"
-  echo ""
-  echo "✓ ESM build structure verified (use with bundlers)"
-}
+node --experimental-wasm-modules test/test-esm.mjs
 
 echo ""
 echo "Step 4: Verifying package structure..."

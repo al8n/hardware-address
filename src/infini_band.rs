@@ -1,6 +1,8 @@
 addr_ty!(
   /// Represents a physical 20-octet InfiniBand format address.
-  InfiniBandAddr[20]
+  __infini_band_addr__,
+  InfiniBandAddr,
+  ParseInfiniBandAddrError[20]
 );
 
 #[cfg(test)]
@@ -8,7 +10,9 @@ mod tests {
   use super::*;
   use crate::TestCase;
 
-  use std::{string::ToString, vec, vec::Vec};
+  #[cfg(any(feature = "alloc", feature = "std"))]
+  use std::string::ToString;
+  use std::{vec, vec::Vec};
 
   const INFINI_BAND_ADDRESS_SIZE: usize = 20;
 
@@ -58,7 +62,8 @@ mod tests {
             test.input
           );
 
-          // Test round-trip if this was a valid case
+          #[cfg(any(feature = "alloc", feature = "std"))]
+          // Test round-trip if this was a valid case.
           if test.err.is_none() {
             let formatted = out.to_string();
             let round_trip = InfiniBandAddr::try_from(formatted.as_str());
@@ -108,6 +113,7 @@ mod tests {
     assert_eq!(addr.octets(), [0; INFINI_BAND_ADDRESS_SIZE]);
   }
 
+  #[cfg(any(feature = "alloc", feature = "std"))]
   #[test]
   fn formatted() {
     let addr =
@@ -161,30 +167,50 @@ mod tests {
   #[cfg(feature = "serde")]
   #[test]
   fn serde_human_unreadable() {
+    use serde_test::{assert_tokens, Configure, Token};
+
     let addr =
       InfiniBandAddr::try_from("00:00:00:00:fe:80:00:00:00:00:00:00:02:00:5e:10:00:00:00:01")
         .unwrap();
-    let encoded = bincode::serde::encode_to_vec(addr, bincode::config::standard()).unwrap();
+    assert_tokens(
+      &addr.compact(),
+      &[
+        Token::Tuple { len: 20 },
+        Token::U8(0x00),
+        Token::U8(0x00),
+        Token::U8(0x00),
+        Token::U8(0x00),
+        Token::U8(0xfe),
+        Token::U8(0x80),
+        Token::U8(0x00),
+        Token::U8(0x00),
+        Token::U8(0x00),
+        Token::U8(0x00),
+        Token::U8(0x00),
+        Token::U8(0x00),
+        Token::U8(0x02),
+        Token::U8(0x00),
+        Token::U8(0x5e),
+        Token::U8(0x10),
+        Token::U8(0x00),
+        Token::U8(0x00),
+        Token::U8(0x00),
+        Token::U8(0x01),
+        Token::TupleEnd,
+      ],
+    );
     assert_eq!(
-      encoded,
+      addr.octets(),
       [
         0x00, 0x00, 0x00, 0x00, 0xfe, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x5e,
         0x10, 0x00, 0x00, 0x00, 0x01,
       ]
     );
-    assert_eq!(addr.octets(), encoded.as_slice());
-
-    let addr2: InfiniBandAddr =
-      bincode::serde::decode_from_slice(&encoded, bincode::config::standard())
-        .unwrap()
-        .0;
-    assert_eq!(addr, addr2);
     let addr3 = InfiniBandAddr::from_raw([
       0x00, 0x00, 0x00, 0x00, 0xfe, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x5e,
       0x10, 0x00, 0x00, 0x00, 0x01,
     ]);
     assert_eq!(addr, addr3);
-    println!("{:?}", addr);
   }
 
   // ------------------------------------------------------------------

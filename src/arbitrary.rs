@@ -1,4 +1,3 @@
-#[macro_export]
 #[doc(hidden)]
 macro_rules! __addr_ty_arbitrary {
   (

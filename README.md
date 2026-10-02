@@ -67,6 +67,10 @@ npm install hardware-address
 - **`pyo3`**: Python bindings
 - **`wasm-bindgen`**: WebAssembly/JavaScript bindings
 
+**MSRV:** Rust 1.85. The `arbitrary`, `quickcheck`, `pyo3`, and `wasm-bindgen`
+features require `std`; core parsing plus the `alloc` and `serde` features remain
+available in `no_std` environments.
+
 ## Usage
 
 ### Rust
@@ -85,8 +89,10 @@ let addr = MacAddr::from_raw([0x00, 0x00, 0x5e, 0x00, 0x53, 0x01]);
 
 // Format conversions
 println!("{}", addr);  // 00:00:5e:00:53:01 (default: colon-separated)
-println!("{}", addr.to_hyphen_separated());  // 00-00-5e-00-53-01
-println!("{}", addr.to_dot_separated());  // 0000.5e00.5301
+let hyphen = addr.to_hyphen_separated_array();
+println!("{}", core::str::from_utf8(&hyphen).unwrap());  // 00-00-5e-00-53-01
+let dot = addr.to_dot_separated_array();
+println!("{}", core::str::from_utf8(&dot).unwrap());  // 0000.5e00.5301
 
 // Access bytes
 let bytes: [u8; 6] = addr.octets();

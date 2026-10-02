@@ -6,47 +6,60 @@
 #![cfg_attr(docsrs, allow(unused_attributes))]
 #![deny(missing_docs)]
 
-#[cfg(feature = "std")]
+#[cfg(any(feature = "std", test))]
 extern crate std;
 
-#[cfg(all(feature = "alloc", not(feature = "std")))]
+#[cfg(all(feature = "alloc", not(any(feature = "std", test))))]
 #[allow(unused_extern_crates)]
 extern crate alloc as std;
 
-/// A macro for defining address types.
-#[macro_export]
+#[cfg(feature = "pyo3")]
+#[macro_use]
+mod py;
+#[cfg(feature = "wasm-bindgen")]
+#[macro_use]
+mod wasm;
+
+#[cfg(feature = "arbitrary")]
+#[macro_use]
+mod arbitrary;
+
+#[cfg(feature = "quickcheck")]
+#[macro_use]
+mod quickcheck;
+
 macro_rules! addr_ty {
   (
     $(#[$attr:meta])*
-    $name:ident[$n:expr]
+    $module:ident,
+    $name:ident,
+    $error:ident[$n:expr]
   ) => {
-    paste::paste! {
-      pub use [< __ $name:snake __ >]::{$name, [< Parse $name Error >]};
+    pub use $module::{$name, $error};
 
-      #[doc(hidden)]
-      #[allow(unused)]
-      mod [< __ $name:snake __ >] {
-        #[cfg(feature = "pyo3")]
-        use $crate::__private::pyo3 as __pyo3;
+    #[doc(hidden)]
+    #[allow(unused)]
+    mod $module {
+      #[cfg(feature = "pyo3")]
+      use $crate::__private::pyo3 as __pyo3;
 
-        #[cfg(feature = "wasm-bindgen")]
-        use $crate::__private::wasm_bindgen as __wasm_bindgen;
+      #[cfg(feature = "wasm-bindgen")]
+      use $crate::__private::wasm_bindgen as __wasm_bindgen;
 
-        #[doc = "Represents an error that occurred while parsing `" $name "`."]
-        pub type [< Parse $name Error >] = $crate::ParseError<$n>;
+      #[doc = concat!("Represents an error that occurred while parsing `", stringify!($name), "`.")]
+      pub type $error = $crate::ParseError<$n>;
 
-        $(#[$attr])*
-        #[derive(::core::clone::Clone, ::core::marker::Copy, ::core::cmp::Eq, ::core::cmp::PartialEq, ::core::cmp::Ord, ::core::cmp::PartialOrd, ::core::hash::Hash)]
-        // `from_py_object` explicitly opts in to the `FromPyObject`
-        // derive that pyo3 used to generate automatically for `Clone`
-        // types. Address types are tiny (`[u8; N]` with `N` in {6, 8, 20}),
-        // so the Clone-based conversion is effectively free and lets them
-        // be passed as arguments to `#[pyfunction]` / `#[pymethods]`.
-        #[cfg_attr(feature = "pyo3", $crate::__private::pyo3::pyclass(crate = "__pyo3", from_py_object))]
-        #[cfg_attr(feature = "wasm-bindgen", $crate::__private::wasm_bindgen::prelude::wasm_bindgen(wasm_bindgen = __wasm_bindgen))]
-        #[repr(transparent)]
-        pub struct $name(pub(crate) [::core::primitive::u8; $n]);
-      }
+      $(#[$attr])*
+      #[derive(::core::clone::Clone, ::core::marker::Copy, ::core::cmp::Eq, ::core::cmp::PartialEq, ::core::cmp::Ord, ::core::cmp::PartialOrd, ::core::hash::Hash)]
+      // `from_py_object` explicitly opts in to the `FromPyObject`
+      // derive that pyo3 used to generate automatically for `Clone`
+      // types. Address types are tiny (`[u8; N]` with `N` in {6, 8, 20}),
+      // so the Clone-based conversion is effectively free and lets them
+      // be passed as arguments to `#[pyfunction]` / `#[pymethods]`.
+      #[cfg_attr(feature = "pyo3", $crate::__private::pyo3::pyclass(crate = "__pyo3", from_py_object))]
+      #[cfg_attr(feature = "wasm-bindgen", $crate::__private::wasm_bindgen::prelude::wasm_bindgen(wasm_bindgen = __wasm_bindgen))]
+      #[repr(transparent)]
+      pub struct $name(pub(crate) [::core::primitive::u8; $n]);
     }
 
     #[allow(unexpected_cfgs)]
@@ -184,7 +197,7 @@ macro_rules! addr_ty {
       }
 
       impl ::core::str::FromStr for $name {
-        type Err = $crate::__private::paste::paste! { [< Parse $name Error >] };
+        type Err = $error;
 
         #[inline]
         fn from_str(src: &str) -> ::core::result::Result<Self, Self::Err> {
@@ -259,7 +272,7 @@ macro_rules! addr_ty {
       }
 
       impl ::core::convert::TryFrom<&str> for $name {
-        type Error = $crate::__private::paste::paste! { [< Parse $name Error >] };
+        type Error = $error;
 
         #[inline]
         fn try_from(src: &str) -> ::core::result::Result<Self, Self::Error> {
@@ -322,16 +335,16 @@ macro_rules! addr_ty {
     };
 
     #[cfg(feature = "arbitrary")]
-    $crate::__addr_ty_arbitrary! { $name[$n] }
+    __addr_ty_arbitrary! { $name[$n] }
 
     #[cfg(feature = "quickcheck")]
-    $crate::__addr_ty_quickcheck! { $name[$n] }
+    __addr_ty_quickcheck! { $name[$n] }
 
     #[cfg(feature = "pyo3")]
-    $crate::__addr_ty_pyo3! { $name[$n] }
+    __addr_ty_pyo3! { $name[$n] }
 
     #[cfg(feature = "wasm-bindgen")]
-    $crate::__addr_ty_wasm_bindgen! { $name[$n] }
+    __addr_ty_wasm_bindgen! { $name[$n] }
   }
 }
 
@@ -344,19 +357,8 @@ pub use eui64::*;
 mod infini_band;
 pub use infini_band::*;
 
-#[cfg(feature = "pyo3")]
-mod py;
-#[cfg(feature = "wasm-bindgen")]
-mod wasm;
-
-#[cfg(feature = "arbitrary")]
-mod arbitrary;
-
-#[cfg(feature = "quickcheck")]
-mod quickcheck;
-
 #[doc(hidden)]
-pub mod __private {
+mod __private {
   /// Lowercase ASCII hex digits for formatting.
   pub const HEX_DIGITS: [::core::primitive::u8; 16] = *b"0123456789abcdef";
 
@@ -411,22 +413,20 @@ pub mod __private {
   #[cfg(feature = "pyo3")]
   pub use pyo3;
 
-  #[cfg(all(feature = "pyo3", feature = "std"))]
+  #[cfg(feature = "pyo3")]
   pub use std::hash::DefaultHasher;
-  #[cfg(all(feature = "pyo3", not(feature = "std")))]
-  pub type DefaultHasher = ::core::hash::BuildHasherDefault<::core::hash::SipHasher>;
 
   #[cfg(feature = "wasm-bindgen")]
   pub use wasm_bindgen;
 
   #[cfg(any(feature = "alloc", feature = "std"))]
-  pub use std::{
-    boxed::Box,
-    string::{String, ToString},
-    vec::Vec,
-  };
+  pub use std::string::{String, ToString};
 
-  pub use paste;
+  #[cfg(feature = "quickcheck")]
+  pub use std::boxed::Box;
+
+  #[cfg(feature = "wasm-bindgen")]
+  pub use std::vec::Vec;
 }
 
 /// Converts a hexadecimal slice to an integer.
@@ -496,18 +496,30 @@ pub const fn xtoi2(s: &[u8], e: u8) -> Option<::core::primitive::u8> {
 
 #[inline]
 const fn dot_separated_format_len<const N: ::core::primitive::usize>() -> ::core::primitive::usize {
+  if N == 0 || N % 2 != 0 {
+    return 0;
+  }
+
   N * 2 + (N / 2 - 1)
 }
 
 #[inline]
 const fn colon_separated_format_len<const N: ::core::primitive::usize>() -> ::core::primitive::usize
 {
+  if N == 0 || N % 2 != 0 {
+    return 0;
+  }
+
   N * 3 - 1
 }
 
 /// ParseError represents an error that occurred while parsing hex address.
 #[derive(Debug, Clone, Eq, PartialEq, thiserror::Error)]
+#[non_exhaustive]
 pub enum ParseError<const N: ::core::primitive::usize> {
+  /// Returned when the requested address size is unsupported.
+  #[error("unsupported address size: {0}; expected a non-zero even number of bytes")]
+  UnsupportedAddressSize(::core::primitive::usize),
   /// Returned when the input string has a invalid length.
   #[error("invalid length: colon or hyphen separated format requires {ch_len} bytes, dot separated format requires {dlen} bytes, but got {0} bytes", ch_len = colon_separated_format_len::<N>(), dlen = dot_separated_format_len::<N>())]
   InvalidLength(::core::primitive::usize),
@@ -528,6 +540,12 @@ pub enum ParseError<const N: ::core::primitive::usize> {
 }
 
 impl<const N: ::core::primitive::usize> ParseError<N> {
+  /// Returns an error for an unsupported address size.
+  #[inline]
+  pub const fn unsupported_address_size(size: ::core::primitive::usize) -> Self {
+    Self::UnsupportedAddressSize(size)
+  }
+
   /// Returns the length of the address.
   #[inline]
   pub const fn invalid_length(len: ::core::primitive::usize) -> Self {
@@ -570,6 +588,10 @@ impl<const N: ::core::primitive::usize> ParseError<N> {
 pub const fn parse<const N: ::core::primitive::usize>(
   src: &[u8],
 ) -> Result<[::core::primitive::u8; N], ParseError<N>> {
+  if N == 0 || N % 2 != 0 {
+    return Err(ParseError::unsupported_address_size(N));
+  }
+
   let dot_separated_len = dot_separated_format_len::<N>();
   let colon_separated_len = colon_separated_format_len::<N>();
   let len = src.len();
@@ -708,6 +730,24 @@ mod tests {
       Err(_) => panic!(),
     };
     assert_eq!(MAC3, [0x00, 0x00, 0x5E, 0x00, 0x53, 0x01]);
+  }
+
+  #[test]
+  fn parse_rejects_unsupported_address_sizes() {
+    assert_eq!(parse::<0>(b""), Err(ParseError::UnsupportedAddressSize(0)));
+    assert_eq!(
+      parse::<1>(b"00"),
+      Err(ParseError::UnsupportedAddressSize(1))
+    );
+    assert_eq!(
+      parse::<3>(b"00:11:22"),
+      Err(ParseError::UnsupportedAddressSize(3))
+    );
+  }
+
+  #[test]
+  fn invalid_length_display_is_total_for_unsupported_sizes() {
+    assert!(!std::format!("{}", ParseError::<0>::InvalidLength(0)).is_empty());
   }
 
   /// Fast-path `hex_byte` sanity: all valid digits, plus a few

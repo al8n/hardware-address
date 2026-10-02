@@ -1,7 +1,9 @@
 addr_ty!(
   /// Represents a physical hardware address (MAC address).
   #[doc(alias = "Eui48Addr")]
-  MacAddr[6]
+  __mac_addr__,
+  MacAddr,
+  ParseMacAddrError[6]
 );
 
 #[cfg(test)]
@@ -9,7 +11,9 @@ mod tests {
   use super::*;
   use crate::{ParseError, TestCase};
 
-  use std::{string::ToString, vec, vec::Vec};
+  #[cfg(any(feature = "alloc", feature = "std"))]
+  use std::string::ToString;
+  use std::{vec, vec::Vec};
 
   const MAC_ADDRESS_SIZE: usize = 6;
 
@@ -50,7 +54,7 @@ mod tests {
       TestCase {
         input: "x1:02:03:04:05:06",
         output: None,
-        err: Some(ParseError::InvalidHexDigit([b'x', b'1'])),
+        err: Some(ParseError::InvalidHexDigit(*b"x1")),
       },
       TestCase {
         input: "01-02:03:04:05:06",
@@ -79,7 +83,8 @@ mod tests {
             test.input
           );
 
-          // Test round-trip if this was a valid case
+          #[cfg(any(feature = "alloc", feature = "std"))]
+          // Test round-trip if this was a valid case.
           if test.err.is_none() {
             let formatted = out.to_string();
             let round_trip = MacAddr::try_from(formatted.as_str());
@@ -129,6 +134,7 @@ mod tests {
     assert_eq!(addr.octets(), [0, 0, 0, 0, 0, 0]);
   }
 
+  #[cfg(any(feature = "alloc", feature = "std"))]
   #[test]
   fn formatted() {
     let addr = MacAddr::try_from("00:00:5e:00:53:01").unwrap();
@@ -160,20 +166,26 @@ mod tests {
   #[cfg(feature = "serde")]
   #[test]
   fn serde_human_unreadable() {
-    let addr = MacAddr::try_from("00:00:5e:00:53:01").unwrap();
-    let json = bincode::serde::encode_to_vec(addr, bincode::config::standard()).unwrap();
-    assert_eq!(json, [0, 0, 94, 0, 83, 1]);
-    assert_eq!(addr.octets(), [0, 0, 94, 0, 83, 1]);
+    use serde_test::{assert_tokens, Configure, Token};
 
-    let addr2: MacAddr = bincode::serde::decode_from_slice(&json, bincode::config::standard())
-      .unwrap()
-      .0;
-    assert_eq!(addr, addr2);
+    let addr = MacAddr::try_from("00:00:5e:00:53:01").unwrap();
+    assert_tokens(
+      &addr.compact(),
+      &[
+        Token::Tuple { len: 6 },
+        Token::U8(0),
+        Token::U8(0),
+        Token::U8(94),
+        Token::U8(0),
+        Token::U8(83),
+        Token::U8(1),
+        Token::TupleEnd,
+      ],
+    );
+    assert_eq!(addr.octets(), [0, 0, 94, 0, 83, 1]);
 
     let addr3 = MacAddr::from_raw([0, 0, 94, 0, 83, 1]);
     assert_eq!(addr, addr3);
-
-    println!("{:?}", addr);
   }
 
   // ------------------------------------------------------------------

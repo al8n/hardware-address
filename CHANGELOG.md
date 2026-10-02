@@ -1,5 +1,17 @@
 # UNRELEASED
 
+## API
+
+- Internalized the broken custom `addr_ty!` macro API; only the built-in address types are supported.
+- Made `ParseError` non-exhaustive and made generic parsing return an error for unsupported address sizes.
+- Made optional feature dependencies explicit so binding and property-testing features require `std` intentionally.
+
+## Build & CI
+
+- Set the MSRV to Rust 1.85 and added locked MSRV and `no_std` CI checks.
+- Started tracking the workspace `Cargo.lock` for reproducible builds.
+- Hardened feature-matrix and WASM test coverage.
+
 ## 0.2.0 (23rd Oct, 2025)
 
 ### Features

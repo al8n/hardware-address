@@ -1,5 +1,4 @@
 #[doc(hidden)]
-#[macro_export]
 macro_rules! __addr_ty_wasm_bindgen {
   (
     $(#[$attr:meta])*
