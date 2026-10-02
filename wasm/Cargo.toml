@@ -15,7 +15,7 @@ publish = false
 
 [lib]
 # Named to not collide with the root `hardware_address` crate (which
-# we depend on). Without this, rustdoc --test / tarpaulin fail with
+# we depend on). Without this, rustdoc --test / coverage runs fail with
 # E0464 "multiple candidates for `rlib` dependency `hardware_address`".
 name = "wasm_hardware_address"
 crate-type = ["cdylib"]
