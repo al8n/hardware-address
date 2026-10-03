@@ -1,5 +1,11 @@
 # UNRELEASED
 
+## 1.0.0 (6th Oct, 2026)
+
+### Release
+
+- Promoted the verified 1.0.0-rc.2 release with no runtime or API changes.
+
 ## 1.0.0-rc.2
 
 ### Packaging
