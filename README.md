@@ -30,34 +30,34 @@ hardware-address = "1.0.0"
 
 ```toml
 # Serialization support
-hardware-address = { version = "1.0.0", features = ["serde"] }
+hardware-address = { version = "1", features = ["serde"] }
 
 # arbitrary support
-hardware-address = { version = "1.0.0", features = ["arbitrary"] }
+hardware-address = { version = "1", features = ["arbitrary"] }
 
 # quickcheck support
-hardware-address = { version = "1.0.0", features = ["quickcheck"] }
+hardware-address = { version = "1", features = ["quickcheck"] }
 
 # proptest support
-hardware-address = { version = "1.0.0", features = ["proptest"] }
+hardware-address = { version = "1", features = ["proptest"] }
 
 # Python bindings
-hardware-address = { version = "1.0.0", features = ["pyo3"] }
+hardware-address = { version = "1", features = ["pyo3"] }
 
 # WebAssembly bindings
-hardware-address = { version = "1.0.0", features = ["wasm-bindgen"] }
+hardware-address = { version = "1", features = ["wasm-bindgen"] }
 ```
 
 ### Python
 
 ```bash
-pip install "hardware-address==1.0.0"
+pip install "hardware-address==1"
 ```
 
 ### JavaScript/TypeScript (WASM)
 
 ```bash
-npm install hardware-address@1.0.0
+npm install hardware-address@1
 ```
 
 ## Features
