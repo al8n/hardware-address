@@ -79,7 +79,7 @@ The repository includes a GitHub Actions workflow for automated publishing.
    - Paste your token
 
 3. Create a release:
-   - Create and push a git tag: `git tag v0.1.3 && git push --tags`
+   - Create and push a matching git tag, for example: `git tag v1.0.0-rc.1 && git push --tags`
    - Create a GitHub release from that tag
    - The workflow will automatically build and publish to npm
 
@@ -100,7 +100,7 @@ After building, the `pkg/` directory contains:
 
 ## Updating the Package
 
-1. Update version in `Cargo.toml`
+1. Update the root `[workspace.package]` version and `wasm/package.json` together
 2. Run `./build-npm.sh`
 3. Test the package
 4. Publish: `cd pkg && npm publish`
@@ -112,14 +112,12 @@ After building, the `pkg/` directory contains:
 - Update wasm-pack: `cargo install wasm-pack --force`
 
 ### "wasm-opt" errors
-The Cargo.toml already has `wasm-opt = false` to avoid optimization issues. If you want to enable it later:
-```toml
-[package.metadata.wasm-pack.profile.release]
-wasm-opt = ["-O2"]  # Use -O2 instead of -O4 for better compatibility
-```
+The release profile currently uses `wasm-opt = ["-O4"]`. Install a compatible
+`wasm-opt` if that optimization step fails; test any optimization-level change
+before changing the release profile.
 
 ### Package already exists
-- Increment the version number in Cargo.toml
+- Increment the root workspace version and matching npm package version
 - Rebuild and publish
 
 ## Resources

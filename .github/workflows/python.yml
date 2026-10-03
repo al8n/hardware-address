@@ -10,7 +10,7 @@ on:
     branches:
       - main
     tags:
-      - '*'
+      - 'v*'
   pull_request:
   workflow_dispatch:
 
@@ -19,13 +19,16 @@ permissions:
 
 jobs:
   test:
-    name: Test Python Package
+    name: Test Python Package (CPython ${{ matrix.python-version }})
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.14']
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with:
-          python-version: '3.11'
+          python-version: ${{ matrix.python-version }}
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
       - name: Build and test
@@ -137,6 +140,8 @@ jobs:
         platform:
           - runner: macos-14
             target: aarch64
+          - runner: macos-15-intel
+            target: x86_64
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -165,6 +170,10 @@ jobs:
           command: sdist
           args: --out dist
           working-directory: python
+      - name: Verify sdist and release metadata
+        run: |
+          python3 scripts/check-release-version.py
+          test -s python/dist/*.tar.gz
       - name: Upload sdist
         uses: actions/upload-artifact@v7
         with:
@@ -185,6 +194,14 @@ jobs:
       attestations: write
     steps:
       - uses: actions/checkout@v7
+
+      - name: Verify release version
+        run: |
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            python3 scripts/check-release-version.py "${GITHUB_REF_NAME#v}"
+          else
+            python3 scripts/check-release-version.py
+          fi
 
       - name: Download all artifacts
         uses: actions/download-artifact@v8

@@ -5,7 +5,7 @@ on:
     branches:
       - main
     tags:
-      - '*'
+      - 'v*'
   pull_request:
   workflow_dispatch:
 
@@ -38,6 +38,10 @@ jobs:
           chmod +x test-dual.sh
           ./test-dual.sh
 
+      - name: Verify npm package
+        working-directory: wasm/pkg-dual
+        run: npm pack --dry-run
+
       - name: Upload npm package artifact
         uses: actions/upload-artifact@v7
         with:
@@ -52,6 +56,14 @@ jobs:
         target: [bundler, nodejs, web]
     steps:
       - uses: actions/checkout@v7
+
+      - name: Verify release version
+        run: |
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            python3 scripts/check-release-version.py "${GITHUB_REF_NAME#v}"
+          else
+            python3 scripts/check-release-version.py
+          fi
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -109,7 +121,12 @@ jobs:
       - name: Publish to npm
         if: ${{ startsWith(github.ref, 'refs/tags/') }}
         working-directory: wasm/pkg-dual
-        run: npm publish --access public
+        run: |
+          if [[ "$(node -p "require('./package.json').version")" == *-* ]]; then
+            npm publish --access public --tag next
+          else
+            npm publish --access public
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 

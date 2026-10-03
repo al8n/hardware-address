@@ -6,6 +6,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 echo "Building hardware-address dual package for npm..."
 cd "$SCRIPT_DIR"
+PACKAGE_VERSION="$(node -p "require('./package.json').version")"
 
 # Clean previous builds
 echo "Cleaning previous builds..."
@@ -48,10 +49,10 @@ rm -rf pkg-nodejs-temp
 
 # Create the dual package.json
 echo "Creating package.json with exports..."
-cat > pkg-dual/package.json << 'EOF'
+cat > pkg-dual/package.json << EOF
 {
   "name": "hardware-address",
-  "version": "0.2.0",
+  "version": "${PACKAGE_VERSION}",
   "description": "IEEE 802 MAC-48, EUI-48, EUI-64, and InfiniBand hardware addresses for WebAssembly",
   "type": "module",
   "main": "./node/hardware_address.js",

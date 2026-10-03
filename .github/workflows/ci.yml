@@ -29,6 +29,14 @@ env:
   stable: stable
 
 jobs:
+  version:
+    name: version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Verify release metadata
+        run: python3 scripts/check-release-version.py
+
   # Check formatting
   rustfmt:
     name: rustfmt
@@ -238,6 +246,7 @@ jobs:
       - msrv
       - no_std
       - public-macro
+      - version
     steps:
       - uses: actions/checkout@v7
       - name: Install Rust
