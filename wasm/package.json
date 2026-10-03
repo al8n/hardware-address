@@ -1,6 +1,6 @@
 {
   "name": "hardware-address",
-  "version": "1.0.0-rc.1",
+  "version": "1.0.0-rc.2",
   "description": "IEEE 802 MAC-48, EUI-48, EUI-64, and InfiniBand hardware addresses for WebAssembly",
   "keywords": [
     "mac-address",

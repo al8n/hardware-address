@@ -58,7 +58,7 @@ dependencies = [
 
 [[package]]
 name = "hardware-address"
-version = "1.0.0-rc.1"
+version = "1.0.0-rc.2"
 dependencies = [
  "arbitrary",
  "pastey",
@@ -215,7 +215,7 @@ dependencies = [
 
 [[package]]
 name = "python"
-version = "1.0.0-rc.1"
+version = "1.0.0-rc.2"
 dependencies = [
  "hardware-address",
  "pyo3",
@@ -441,7 +441,7 @@ dependencies = [
 
 [[package]]
 name = "wasm"
-version = "1.0.0-rc.1"
+version = "1.0.0-rc.2"
 dependencies = [
  "hardware-address",
 ]

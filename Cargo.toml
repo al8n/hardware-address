@@ -16,7 +16,7 @@ members = ["python", "wasm"]
 exclude = ["tests/fixtures/custom-address"]
 
 [workspace.package]
-version = "1.0.0-rc.1"
+version = "1.0.0-rc.2"
 rust-version = "1.85"
 
 [features]

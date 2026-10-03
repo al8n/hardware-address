@@ -7,19 +7,46 @@ import argparse
 import glob
 import tarfile
 import zipfile
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 
 REQUIRED_LICENSES = {"LICENSE-APACHE", "LICENSE-MIT"}
+REQUIRED_SDIST_FILES = {
+    "Cargo.toml",
+    "Cargo.lock",
+    "src/lib.rs",
+    "python/Cargo.toml",
+    "python/src/lib.rs",
+    "pyproject.toml",
+    *REQUIRED_LICENSES,
+}
 
 
-def artifact_members(path: Path) -> set[str]:
+def wheel_members(path: Path) -> set[str]:
+    with zipfile.ZipFile(path) as archive:
+        return {Path(name).name for name in archive.namelist()}
+
+
+def sdist_members(path: Path) -> set[str]:
+    with tarfile.open(path, "r:gz") as archive:
+        members = [PurePosixPath(member.name) for member in archive.getmembers() if member.isfile()]
+    roots = {member.parts[0] for member in members if member.parts}
+    if len(roots) != 1:
+        raise ValueError(f"source distribution must have one top-level directory: {path}")
+    return {str(PurePosixPath(*member.parts[1:])) for member in members if len(member.parts) > 1}
+
+
+def validate_artifact(path: Path) -> None:
     if path.suffix == ".whl":
-        with zipfile.ZipFile(path) as archive:
-            return {Path(name).name for name in archive.namelist()}
+        missing = REQUIRED_LICENSES - wheel_members(path)
+        if missing:
+            raise ValueError(f"{path} is missing: {', '.join(sorted(missing))}")
+        return
     if path.name.endswith(".tar.gz"):
-        with tarfile.open(path, "r:gz") as archive:
-            return {Path(member.name).name for member in archive.getmembers()}
+        missing = REQUIRED_SDIST_FILES - sdist_members(path)
+        if missing:
+            raise ValueError(f"{path} is missing: {', '.join(sorted(missing))}")
+        return
     raise ValueError(f"unsupported artifact type: {path}")
 
 
@@ -39,11 +66,11 @@ def main() -> int:
     args = parser.parse_args()
 
     for artifact in expand_artifacts(args.artifacts, parser):
-        members = artifact_members(artifact)
-        missing = REQUIRED_LICENSES - members
-        if missing:
-            parser.error(f"{artifact} is missing: {', '.join(sorted(missing))}")
-        print(f"{artifact}: includes both license texts")
+        try:
+            validate_artifact(artifact)
+        except (OSError, tarfile.TarError, ValueError, zipfile.BadZipFile) as error:
+            parser.error(str(error))
+        print(f"{artifact}: layout and license texts are valid")
     return 0
 
 
