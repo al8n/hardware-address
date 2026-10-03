@@ -26,7 +26,7 @@ pyo3 = ["std", "dep:pyo3"]
 wasm-bindgen = ["std", "dep:wasm-bindgen"]
 
 [dependencies]
-pastey = "0.2.3"
+pastey = "0.2"
 thiserror = { version = "2", default-features = false }
 
 serde = { version = "1", features = ["derive"], default-features = false, optional = true }
