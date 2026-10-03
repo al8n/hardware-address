@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    tags:
+      - 'v*'
     paths-ignore:
       - 'README'
       - 'COPYRIGHT'
@@ -116,7 +118,7 @@ jobs:
       - name: cargo build --target ${{ matrix.target }}
         run: |
           rustup target add ${{ matrix.target }}
-          cargo build --target ${{ matrix.target }} 
+          cargo build --locked --target ${{ matrix.target }}
 
   build:
     name: build
@@ -274,17 +276,11 @@ jobs:
           rustc --version
           cargo llvm-cov --version
       - name: Run cargo-llvm-cov
-        # `--exclude python --exclude wasm`: the binding subcrates
-        # depend on `hardware-address` with their respective binding
-        # features (`pyo3`, `wasm-bindgen`) enabled. Under `--workspace`,
-        # cargo's feature unification would turn those on in the root
-        # crate as well — and linking a test binary that references
-        # pyo3's `extension-module` Python symbols (`PyBool_Type`,
-        # `_Py_TrueStruct`, …) fails because those symbols are only
-        # provided by the Python interpreter at load time. Excluding
-        # both subcrates avoids the feature-unification trap; binding
-        # coverage is handled by pytest and `wasm-pack test`.
-        run: cargo llvm-cov --workspace --exclude python --exclude wasm --features serde,arbitrary,quickcheck --doctests --lcov --output-path lcov.info
+        # `--exclude python --exclude wasm`: binding behavior is covered
+        # by the Python pytest and WASM test jobs, so this root coverage
+        # report only measures the Rust library and avoids double-counting
+        # the binding packages.
+        run: cargo llvm-cov --locked --workspace --exclude python --exclude wasm --features serde,arbitrary,quickcheck,proptest --doctests --lcov --output-path lcov.info
       - name: Upload coverage report artifact
         # Lets us download the exact lcov.info cargo-llvm-cov produced and
         # diff it locally against a local coverage run — useful when

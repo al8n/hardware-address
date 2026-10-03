@@ -8,12 +8,23 @@
 - Made `ParseError` non-exhaustive and made generic parsing return an error for unsupported address sizes.
 - Made optional feature dependencies explicit so binding and property-testing features require `std` intentionally.
 - Added opt-in `proptest::arbitrary::Arbitrary` support for built-in and downstream custom address types.
+- Made exported macro helpers hygienic under downstream name shadowing and restored human-readable Serde deserialization from streaming readers.
+- Made PyO3 integrations composable for embedding consumers and finalized Python license artifacts.
 
 ### Release preparation
 
 - Set the MSRV to Rust 1.85 and added locked MSRV and `no_std` CI checks.
 - Started tracking the workspace `Cargo.lock` for reproducible builds.
-- Hardened feature-matrix, packaging, and WASM test coverage for the release candidate.
+- Hardened feature-matrix, package-lock, packaging, and WASM artifact test coverage for the release candidate.
+
+## 0.3.0 (15th Apr, 2026)
+
+### Features
+
+- Added const parsing support for hardware-address literals.
+- Fixed parser length and overflow handling.
+- Hardened property-test integrations and shrinking behavior.
+- Updated the PyO3 integration to 0.28.
 
 ## 0.2.0 (23rd Oct, 2025)
 

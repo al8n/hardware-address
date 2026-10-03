@@ -29,9 +29,39 @@ macro_rules! __addr_ty_serde {
           D: $crate::__private::serde::Deserializer<'a>,
         {
           if deserializer.is_human_readable() {
-            let s = <&str as $crate::__private::serde::Deserialize>::deserialize(deserializer)?;
-            <$name as ::core::str::FromStr>::from_str(s)
-              .map_err($crate::__private::serde::de::Error::custom)
+            struct AddressVisitor;
+
+            impl<'de> $crate::__private::serde::de::Visitor<'de> for AddressVisitor {
+              type Value = $name;
+
+              fn expecting(
+                &self,
+                formatter: &mut ::core::fmt::Formatter<'_>,
+              ) -> ::core::fmt::Result {
+                ::core::write!(formatter, "a colon-, hyphen-, or dot-separated address")
+              }
+
+              fn visit_borrowed_str<E>(
+                self,
+                value: &'de str,
+              ) -> ::core::result::Result<Self::Value, E>
+              where
+                E: $crate::__private::serde::de::Error,
+              {
+                <$name as ::core::str::FromStr>::from_str(value)
+                  .map_err($crate::__private::serde::de::Error::custom)
+              }
+
+              fn visit_str<E>(self, value: &str) -> ::core::result::Result<Self::Value, E>
+              where
+                E: $crate::__private::serde::de::Error,
+              {
+                <$name as ::core::str::FromStr>::from_str(value)
+                  .map_err($crate::__private::serde::de::Error::custom)
+              }
+            }
+
+            deserializer.deserialize_str(AddressVisitor)
           } else {
             let bytes =
               <[::core::primitive::u8; $n] as $crate::__private::serde::Deserialize>::deserialize(

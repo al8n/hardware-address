@@ -11,7 +11,7 @@ cd "$SCRIPT_DIR"
 # output filenames stable across changes to the crate's `[lib] name`
 # (see the comment in build-dual.sh).
 echo "Building for Node.js target..."
-wasm-pack build --target nodejs --release --out-dir pkg-nodejs --out-name hardware_address
+wasm-pack build --target nodejs --release --out-dir pkg-nodejs --out-name hardware_address -- --locked
 
 # Run the tests
 echo ""

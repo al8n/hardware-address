@@ -19,7 +19,7 @@ cd "$SCRIPT_DIR"
 # (which exists to avoid an rlib collision with the root crate during
 # workspace doctest builds).
 echo "Building for bundler target..."
-wasm-pack build --target bundler --release --out-dir pkg --out-name hardware_address
+wasm-pack build --target bundler --release --out-dir pkg --out-name hardware_address -- --locked
 
 # Copy the npm-specific README to pkg directory
 echo "Copying README..."

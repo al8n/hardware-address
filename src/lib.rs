@@ -36,7 +36,7 @@ macro_rules! addr_ty {
     $name:ident[$n:expr]
   ) => {
     const _: () = {
-      assert!(
+      ::core::assert!(
         $n != 0 && $n % 2 == 0,
         "addr_ty! requires a non-zero even byte count",
       );
@@ -255,11 +255,11 @@ macro_rules! addr_ty {
         }
       }
 
-      impl core::fmt::Display for $name {
+      impl ::core::fmt::Display for $name {
         #[inline]
-        fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
           let buf = self.to_colon_separated_array();
-          write!(
+          ::core::write!(
             f,
             "{}",
             // SAFETY: The buffer is always valid UTF-8 as it only contains ASCII characters.

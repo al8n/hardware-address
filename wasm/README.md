@@ -134,7 +134,7 @@ All three address types (`MacAddr`, `Eui64Addr`, `InfiniBandAddr`) support:
 
 - Rust (latest stable)
 - wasm-pack (`cargo install wasm-pack`)
-- Node.js 18+
+- Node.js 22.14.0+
 
 ### Building
 

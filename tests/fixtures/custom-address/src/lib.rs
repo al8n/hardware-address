@@ -6,6 +6,46 @@ extern crate std;
 
 hardware_address::addr_ty!(MyAddr[12]);
 
+#[allow(dead_code, unused_macros)]
+mod macro_hygiene {
+  #[allow(dead_code)]
+  mod core {}
+
+  #[allow(unused_macros)]
+  macro_rules! assert {
+    ($($tokens:tt)*) => {
+      compile_error!("addr_ty! captured the downstream assert! macro")
+    };
+  }
+
+  #[allow(unused_macros)]
+  macro_rules! write {
+    ($($tokens:tt)*) => {
+      compile_error!("addr_ty! captured the downstream write! macro")
+    };
+  }
+
+  #[allow(unused_macros)]
+  macro_rules! format {
+    ($($tokens:tt)*) => {
+      compile_error!("addr_ty! captured the downstream format! macro")
+    };
+  }
+
+  #[allow(dead_code)]
+  struct Ok;
+  #[allow(dead_code)]
+  struct Err;
+
+  hardware_address::addr_ty!(ShadowedAddress[12]);
+
+  #[cfg(test)]
+  #[test]
+  fn macro_expansion_ignores_downstream_shadowing() {
+    assert_eq!(ShadowedAddress::SIZE, 12);
+  }
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
@@ -47,6 +87,19 @@ mod tests {
     assert_impl::<MyAddr>();
   }
 
+  #[cfg(feature = "serde")]
+  #[test]
+  fn custom_address_deserializes_from_reader() {
+    let address: MyAddr = serde_json::from_reader(std::io::Cursor::new(
+      b"\"00:01:02:03:04:05:06:07:08:09:0a:0b\"",
+    ))
+    .unwrap();
+    assert_eq!(
+      address.octets(),
+      [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b,]
+    );
+  }
+
   #[cfg(feature = "arbitrary")]
   #[test]
   fn custom_address_implements_arbitrary() {
@@ -76,5 +129,16 @@ mod tests {
       let parsed = MyAddr::try_from(formatted.as_str()).unwrap();
       proptest::prop_assert_eq!(parsed, address);
     }
+  }
+
+  #[cfg(feature = "pyo3")]
+  #[test]
+  fn custom_address_attaches_to_python() {
+    use pyo3::types::{PyStringMethods, PyTypeMethods};
+
+    pyo3::Python::attach(|py| {
+      let class = py.get_type::<MyAddr>();
+      assert_eq!(class.name().unwrap().to_str().unwrap(), "MyAddr");
+    });
   }
 }
