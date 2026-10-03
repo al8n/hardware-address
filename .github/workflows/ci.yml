@@ -206,6 +206,26 @@ jobs:
       - name: Check serde
         run: cargo +1.85.0 check -p hardware-address --locked --target thumbv6m-none-eabi --no-default-features --features serde
 
+  public-macro:
+    name: public-macro
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install Rust
+        run: rustup update stable --no-self-update && rustup default stable
+      - name: Install wasm32 target
+        run: rustup target add wasm32-unknown-unknown
+      - name: Check without default features
+        run: cargo check --manifest-path tests/fixtures/custom-address/Cargo.toml --locked --no-default-features
+      - name: Check wasm-bindgen custom type
+        run: cargo check --manifest-path tests/fixtures/custom-address/Cargo.toml --locked --target wasm32-unknown-unknown --no-default-features --features std,wasm-bindgen
+      - name: Test default features
+        run: cargo test --manifest-path tests/fixtures/custom-address/Cargo.toml --locked
+      - name: Check all features
+        run: cargo check --manifest-path tests/fixtures/custom-address/Cargo.toml --locked --all-features
+      - name: Test all features
+        run: cargo test --manifest-path tests/fixtures/custom-address/Cargo.toml --locked --all-features
+
   coverage:
     name: coverage
     runs-on: ubuntu-latest
@@ -217,6 +237,7 @@ jobs:
       - test
       - msrv
       - no_std
+      - public-macro
     steps:
       - uses: actions/checkout@v7
       - name: Install Rust

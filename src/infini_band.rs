@@ -1,8 +1,6 @@
 addr_ty!(
   /// Represents a physical 20-octet InfiniBand format address.
-  __infini_band_addr__,
-  InfiniBandAddr,
-  ParseInfiniBandAddrError[20]
+  InfiniBandAddr[20]
 );
 
 #[cfg(test)]

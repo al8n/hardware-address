@@ -73,6 +73,22 @@ available in `no_std` environments.
 
 ## Usage
 
+### Custom address types
+
+Use [`addr_ty!`] to define a non-zero, even-sized address type in a downstream
+crate. It generates both the address type and its `ParseMyAddrError` alias. Core,
+alloc, serde, arbitrary, quickcheck, and pyo3 integrations follow the selected
+`hardware-address` features. Custom types exported with `wasm-bindgen` must also
+list `wasm-bindgen` as a direct dependency because its proc macro resolves it
+from the downstream extern prelude.
+
+```rust
+hardware_address::addr_ty!(MyAddr[12]);
+
+let address = MyAddr::from_raw([0; 12]);
+assert_eq!(address.octets(), [0; 12]);
+```
+
 ### Rust
 
 ```rust

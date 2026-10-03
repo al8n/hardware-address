@@ -1,8 +1,6 @@
 addr_ty!(
   /// Represents a physical EUI-64 format address.
-  __eui64_addr__,
-  Eui64Addr,
-  ParseEui64AddrError[8]
+  Eui64Addr[8]
 );
 
 #[cfg(test)]

@@ -2,7 +2,7 @@
 
 ## API
 
-- Internalized the broken custom `addr_ty!` macro API; only the built-in address types are supported.
+- Kept `addr_ty!` public and hardened it for hygienic downstream use with dependency-feature-controlled integrations.
 - Made `ParseError` non-exhaustive and made generic parsing return an error for unsupported address sizes.
 - Made optional feature dependencies explicit so binding and property-testing features require `std` intentionally.
 

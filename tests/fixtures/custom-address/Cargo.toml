@@ -1,0 +1,24 @@
+[package]
+name = "custom-address-fixture"
+version = "0.0.0"
+edition = "2021"
+rust-version = "1.85"
+publish = false
+
+[workspace]
+
+[features]
+default = ["std"]
+std = ["hardware-address/std"]
+serde = ["hardware-address/serde", "dep:serde"]
+arbitrary = ["hardware-address/arbitrary", "dep:arbitrary"]
+quickcheck = ["hardware-address/quickcheck", "dep:quickcheck"]
+pyo3 = ["hardware-address/pyo3"]
+wasm-bindgen = ["hardware-address/wasm-bindgen", "dep:wasm-bindgen"]
+
+[dependencies]
+hardware-address = { path = "../../..", default-features = false }
+serde = { version = "1", default-features = false, optional = true }
+arbitrary = { version = "1", default-features = false, optional = true }
+quickcheck = { version = "1", optional = true }
+wasm-bindgen = { version = "0.2", default-features = false, optional = true }

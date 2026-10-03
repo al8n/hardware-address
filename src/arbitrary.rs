@@ -1,4 +1,6 @@
+#[cfg(feature = "arbitrary")]
 #[doc(hidden)]
+#[macro_export]
 macro_rules! __addr_ty_arbitrary {
   (
     $name:ident[$n:expr]
@@ -23,4 +25,13 @@ macro_rules! __addr_ty_arbitrary {
       }
     };
   };
+}
+
+#[cfg(not(feature = "arbitrary"))]
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __addr_ty_arbitrary {
+  (
+    $name:ident[$n:expr]
+  ) => {};
 }

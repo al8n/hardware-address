@@ -1,9 +1,7 @@
 addr_ty!(
   /// Represents a physical hardware address (MAC address).
   #[doc(alias = "Eui48Addr")]
-  __mac_addr__,
-  MacAddr,
-  ParseMacAddrError[6]
+  MacAddr[6]
 );
 
 #[cfg(test)]
