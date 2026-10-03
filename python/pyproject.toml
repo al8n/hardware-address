@@ -8,7 +8,6 @@ description = "IEEE 802 MAC-48, EUI-48, EUI-64, or a 20-octet IP over InfiniBand
 readme = "README.pypi.md"
 requires-python = ">=3.8"
 license = "MIT OR Apache-2.0"
-license-files = ["LICENSE-APACHE", "LICENSE-MIT"]
 keywords = ["mac-address", "eui64", "eui48", "hardware-address", "network", "infiniband", "ieee802"]
 authors = [
     {name = "Al Liu", email = "scygliu1@gmail.com"}
@@ -46,7 +45,7 @@ test = [
 ]
 
 [tool.maturin]
-sdist-generator = "git"
+sdist-generator = "cargo"
 # Features to enable when building
 features = ["pyo3/extension-module"]
 # Path to the Rust project root (parent directory)

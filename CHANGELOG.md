@@ -1,5 +1,11 @@
 # UNRELEASED
 
+## 1.0.0-rc.2
+
+### Packaging
+
+- Fixed Python source distributions to use Cargo's complete workspace source layout.
+
 ## 1.0.0-rc.1
 
 ### API

@@ -12,6 +12,8 @@ without arguments and with the tag version before publishing.
 2. Run the full CI and packaging checks, create and push `v1.0.0-rc.1`, then
    create a GitHub prerelease from that tag. Publish and smoke-test the RC on
    crates.io, PyPI, and npm; npm prereleases publish under the `next` dist-tag.
+   The Python sdist smoke must rebuild the extracted source with a locked Cargo
+   build and import `MacAddr` from the resulting wheel.
 3. After all three registry smoke checks succeed, replace the prerelease version
    with the stable version, update the changelog, repeat the checks, and push the
    matching stable tag.

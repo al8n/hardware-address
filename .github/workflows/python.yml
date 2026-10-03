@@ -185,17 +185,46 @@ jobs:
     needs: version
     steps:
       - uses: actions/checkout@v7
-      - name: Build sdist
-        uses: PyO3/maturin-action@v1
+      - uses: actions/setup-python@v7
         with:
-          command: sdist
-          args: --out dist
-          working-directory: python
+          python-version: '3.14'
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Install maturin
+        run: python -m pip install maturin==1.9.6
+      - name: Build sdist
+        working-directory: python
+        run: python -m maturin sdist --manifest-path Cargo.toml --out dist
       - name: Verify sdist and release metadata
+        shell: bash
         run: |
           python3 scripts/check-release-version.py
-          test -s python/dist/*.tar.gz
-          python3 scripts/check-python-artifacts.py python/dist/*.tar.gz
+          archive="$(printf '%s\n' python/dist/*.tar.gz)"
+          test -s "$archive"
+          python3 scripts/check-python-artifacts.py "$archive"
+          smoke_root="${RUNNER_TEMP}/hardware-address-sdist"
+          wheel_dir="${RUNNER_TEMP}/hardware-address-sdist-wheel"
+          venv_dir="${RUNNER_TEMP}/hardware-address-sdist-venv"
+          target_dir="${RUNNER_TEMP}/hardware-address-sdist-target"
+          rm -rf "$smoke_root" "$wheel_dir" "$venv_dir" "$target_dir"
+          mkdir -p "$smoke_root" "$wheel_dir"
+          top_levels="$(tar -tzf "$archive" | awk -F/ 'NF {print $1}' | sort -u)"
+          test "$(printf '%s\n' "$top_levels" | sed '/^$/d' | wc -l | tr -d ' ')" -eq 1
+          tar -xzf "$archive" --strip-components=1 -C "$smoke_root"
+          test -f "$smoke_root/Cargo.toml"
+          test -f "$smoke_root/Cargo.lock"
+          test -f "$smoke_root/src/lib.rs"
+          test -f "$smoke_root/python/Cargo.toml"
+          test -f "$smoke_root/python/src/lib.rs"
+          test -f "$smoke_root/pyproject.toml"
+          (
+            cd "$smoke_root"
+            CARGO_TARGET_DIR="$target_dir" python -m maturin build --release --locked --out "$wheel_dir"
+          )
+          python3 scripts/check-python-artifacts.py "$wheel_dir"/*.whl
+          python -m venv "$venv_dir"
+          "$venv_dir/bin/pip" install "$wheel_dir"/*.whl
+          "$venv_dir/bin/python" -c 'from hardware_address import MacAddr; assert str(MacAddr.parse("00:00:5e:00:53:01")) == "00:00:5e:00:53:01"'
       - name: Upload sdist
         uses: actions/upload-artifact@v7
         with:
