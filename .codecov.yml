@@ -6,6 +6,7 @@ ignore:
   - python/
   - src/py.rs
   - src/wasm.rs
+  - tests/
 coverage:
   status:
     project: # Overall project status
