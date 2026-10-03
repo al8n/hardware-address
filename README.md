@@ -23,38 +23,41 @@ IEEE 802 MAC-48, EUI-48, EUI-64, or a 20-octet IP over InfiniBand link-layer add
 
 ```toml
 [dependencies]
-hardware-address = "0.3"
+hardware-address = "1.0.0-rc.1"
 ```
 
 **Optional features:**
 
 ```toml
 # Serialization support
-hardware-address = { version = "0.3", features = ["serde"] }
+hardware-address = { version = "1.0.0-rc.1", features = ["serde"] }
 
 # arbitrary support
-hardware-address = { version = "0.3", features = ["arbitrary"] }
+hardware-address = { version = "1.0.0-rc.1", features = ["arbitrary"] }
 
 # quickcheck support
-hardware-address = { version = "0.3", features = ["quickcheck"] }
+hardware-address = { version = "1.0.0-rc.1", features = ["quickcheck"] }
+
+# proptest support
+hardware-address = { version = "1.0.0-rc.1", features = ["proptest"] }
 
 # Python bindings
-hardware-address = { version = "0.3", features = ["pyo3"] }
+hardware-address = { version = "1.0.0-rc.1", features = ["pyo3"] }
 
 # WebAssembly bindings
-hardware-address = { version = "0.3", features = ["wasm-bindgen"] }
+hardware-address = { version = "1.0.0-rc.1", features = ["wasm-bindgen"] }
 ```
 
 ### Python
 
 ```bash
-pip install hardware-address
+pip install "hardware-address==1.0.0rc1"
 ```
 
 ### JavaScript/TypeScript (WASM)
 
 ```bash
-npm install hardware-address
+npm install hardware-address@1.0.0-rc.1
 ```
 
 ## Features
@@ -64,11 +67,12 @@ npm install hardware-address
 - **`serde`**: Serialization/deserialization
 - **`arbitrary`**: Fuzzing and property-based testing with [`arbitrary`](https://crates.io/crates/arbitrary)
 - **`quickcheck`**: Property-based testing with [`quickcheck`](https://crates.io/crates/quickcheck)
+- **`proptest`**: Property-based testing with [`proptest`](https://crates.io/crates/proptest)
 - **`pyo3`**: Python bindings
 - **`wasm-bindgen`**: WebAssembly/JavaScript bindings
 
-**MSRV:** Rust 1.85. The `arbitrary`, `quickcheck`, `pyo3`, and `wasm-bindgen`
-features require `std`; core parsing plus the `alloc` and `serde` features remain
+**MSRV:** Rust 1.85. The `arbitrary`, `quickcheck`, `proptest`, `pyo3`, and
+`wasm-bindgen` features require `std`; core parsing plus the `alloc` and `serde` features remain
 available in `no_std` environments.
 
 ## Usage
@@ -77,7 +81,7 @@ available in `no_std` environments.
 
 Use [`addr_ty!`] to define a non-zero, even-sized address type in a downstream
 crate. It generates both the address type and its `ParseMyAddrError` alias. Core,
-alloc, serde, arbitrary, quickcheck, and pyo3 integrations follow the selected
+alloc, serde, arbitrary, quickcheck, proptest, and pyo3 integrations follow the selected
 `hardware-address` features. Custom types exported with `wasm-bindgen` must also
 list `wasm-bindgen` as a direct dependency because its proc macro resolves it
 from the downstream extern prelude.
@@ -126,7 +130,7 @@ addr = MacAddr.parse("00-00-5e-00-53-01")
 addr = MacAddr.parse("0000.5e00.5301")
 
 # Create from bytes
-addr = MacAddr(b"\x00\x00\x5e\x00\x53\x01")
+addr = MacAddr.from_bytes(b"\x00\x00\x5e\x00\x53\x01")
 
 # String representation
 print(str(addr))   # 00:00:5e:00:53:01

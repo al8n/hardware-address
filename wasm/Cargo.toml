@@ -1,8 +1,8 @@
 [package]
 name = "wasm"
-version = "0.2.0"
+version.workspace = true
 edition = "2024"
-rust-version = "1.85"
+rust-version.workspace = true
 authors = ["Al Liu <scygliu1@gmail.com>"]
 description = "WebAssembly bindings for hardware-address: IEEE 802 MAC-48, EUI-48, EUI-64, and InfiniBand hardware addresses"
 license = "MIT OR Apache-2.0"
@@ -25,4 +25,4 @@ crate-type = ["cdylib"]
 wasm-opt = ["-O4"]
 
 [dependencies]
-hardware-address = { path = "../", version = "0.3", features = ["wasm-bindgen", "std"] }
+hardware-address = { path = "../", version = "1.0.0-rc.1", features = ["wasm-bindgen", "std"] }

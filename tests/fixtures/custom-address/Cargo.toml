@@ -13,6 +13,7 @@ std = ["hardware-address/std"]
 serde = ["hardware-address/serde", "dep:serde"]
 arbitrary = ["hardware-address/arbitrary", "dep:arbitrary"]
 quickcheck = ["hardware-address/quickcheck", "dep:quickcheck"]
+proptest = ["hardware-address/proptest", "dep:proptest"]
 pyo3 = ["hardware-address/pyo3"]
 wasm-bindgen = ["hardware-address/wasm-bindgen", "dep:wasm-bindgen"]
 
@@ -21,4 +22,5 @@ hardware-address = { path = "../../..", default-features = false }
 serde = { version = "1", default-features = false, optional = true }
 arbitrary = { version = "1", default-features = false, optional = true }
 quickcheck = { version = "1", optional = true }
+proptest = { version = "1", default-features = false, features = ["std"], optional = true }
 wasm-bindgen = { version = "0.2", default-features = false, optional = true }

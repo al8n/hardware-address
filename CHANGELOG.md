@@ -1,16 +1,19 @@
 # UNRELEASED
 
-## API
+## 1.0.0-rc.1
+
+### API
 
 - Kept `addr_ty!` public and hardened it for hygienic downstream use with dependency-feature-controlled integrations.
 - Made `ParseError` non-exhaustive and made generic parsing return an error for unsupported address sizes.
 - Made optional feature dependencies explicit so binding and property-testing features require `std` intentionally.
+- Added opt-in `proptest::arbitrary::Arbitrary` support for built-in and downstream custom address types.
 
-## Build & CI
+### Release preparation
 
 - Set the MSRV to Rust 1.85 and added locked MSRV and `no_std` CI checks.
 - Started tracking the workspace `Cargo.lock` for reproducible builds.
-- Hardened feature-matrix and WASM test coverage.
+- Hardened feature-matrix, packaging, and WASM test coverage for the release candidate.
 
 ## 0.2.0 (23rd Oct, 2025)
 

@@ -17,7 +17,7 @@ extern crate alloc as std;
 ///
 /// The generated type is named after the supplied identifier and its parse error
 /// alias is named `Parse<Type>Error`. Core, alloc, serde, arbitrary, quickcheck,
-/// and pyo3 integrations follow enabled `hardware-address` dependency features.
+/// proptest, and pyo3 integrations follow enabled `hardware-address` dependency features.
 /// Custom types exported with the `wasm-bindgen` feature must also list
 /// `wasm-bindgen` as a direct dependency because its proc macro resolves it from
 /// the downstream extern prelude. The size must be a non-zero even number of bytes.
@@ -273,6 +273,7 @@ macro_rules! addr_ty {
     $crate::__addr_ty_serde! { $name[$n] }
     $crate::__addr_ty_arbitrary! { $name[$n] }
     $crate::__addr_ty_quickcheck! { $name[$n] }
+    $crate::__addr_ty_proptest! { $name[$n] }
     $crate::__addr_ty_pyo3! { $name[$n] }
     $crate::__addr_ty_wasm_bindgen! { $name[$n] }
   }
@@ -280,6 +281,7 @@ macro_rules! addr_ty {
 
 mod alloc;
 mod arbitrary;
+mod proptest;
 mod py;
 mod quickcheck;
 mod serde;
@@ -369,6 +371,9 @@ pub mod __private {
 
   #[cfg(feature = "quickcheck")]
   pub use quickcheck;
+
+  #[cfg(feature = "proptest")]
+  pub use ::proptest;
 
   #[cfg(feature = "pyo3")]
   pub use pyo3;
