@@ -23,41 +23,41 @@ IEEE 802 MAC-48, EUI-48, EUI-64, or a 20-octet IP over InfiniBand link-layer add
 
 ```toml
 [dependencies]
-hardware-address = "1.0.0-rc.2"
+hardware-address = "1.0.0"
 ```
 
 **Optional features:**
 
 ```toml
 # Serialization support
-hardware-address = { version = "1.0.0-rc.2", features = ["serde"] }
+hardware-address = { version = "1", features = ["serde"] }
 
 # arbitrary support
-hardware-address = { version = "1.0.0-rc.2", features = ["arbitrary"] }
+hardware-address = { version = "1", features = ["arbitrary"] }
 
 # quickcheck support
-hardware-address = { version = "1.0.0-rc.2", features = ["quickcheck"] }
+hardware-address = { version = "1", features = ["quickcheck"] }
 
 # proptest support
-hardware-address = { version = "1.0.0-rc.2", features = ["proptest"] }
+hardware-address = { version = "1", features = ["proptest"] }
 
 # Python bindings
-hardware-address = { version = "1.0.0-rc.2", features = ["pyo3"] }
+hardware-address = { version = "1", features = ["pyo3"] }
 
 # WebAssembly bindings
-hardware-address = { version = "1.0.0-rc.2", features = ["wasm-bindgen"] }
+hardware-address = { version = "1", features = ["wasm-bindgen"] }
 ```
 
 ### Python
 
 ```bash
-pip install "hardware-address==1.0.0rc2"
+pip install "hardware-address==1"
 ```
 
 ### JavaScript/TypeScript (WASM)
 
 ```bash
-npm install hardware-address@1.0.0-rc.2
+npm install hardware-address@1
 ```
 
 ## Features

@@ -25,4 +25,4 @@ crate-type = ["cdylib"]
 wasm-opt = ["-O4"]
 
 [dependencies]
-hardware-address = { path = "../", version = "1.0.0-rc.2", features = ["wasm-bindgen", "std"] }
+hardware-address = { path = "../", version = "1.0.0", features = ["wasm-bindgen", "std"] }
