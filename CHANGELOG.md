@@ -1,6 +1,6 @@
 # UNRELEASED
 
-## 1.0.0 (6th Oct, 2026)
+## 1.0.0 (4th Oct, 2026)
 
 ### Release
 
