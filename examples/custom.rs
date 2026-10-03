@@ -1,7 +1,7 @@
 use hardware_address::addr_ty;
 
 addr_ty!(
-  /// Represents an address.
+  /// Represents a custom 12-octet address.
   MyAddr[12]
 );
 

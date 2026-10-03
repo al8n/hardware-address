@@ -1,16 +1,18 @@
-#[macro_export]
+#[cfg(feature = "pyo3")]
 #[doc(hidden)]
+#[macro_export]
 macro_rules! __addr_ty_pyo3 {
   (
     $name:ident[$n:expr]
   ) => {
     #[allow(clippy::wrong_self_convention)]
     const _: () = {
+      use $crate::__private::pyo3 as __pyo3;
       use $crate::__private::pyo3::prelude::*;
       use $crate::__private::pyo3::types::PyBytes;
       use $crate::__private::ToString;
 
-      #[pymethods]
+      #[pymethods(crate = "__pyo3")]
       impl $name {
         #[new]
         fn __py_new() -> Self {
@@ -84,21 +86,18 @@ macro_rules! __addr_ty_pyo3 {
 
         /// Converts to colon-separated string representation.
         #[pyo3(name = "to_colon_separated")]
-        #[cfg(any(feature = "alloc", feature = "std"))]
         fn __to_colon_separated_py(&self) -> $crate::__private::String {
           self.to_colon_separated()
         }
 
         /// Converts to hyphen-separated string representation.
         #[pyo3(name = "to_hyphen_separated")]
-        #[cfg(any(feature = "alloc", feature = "std"))]
         fn __to_hyphen_separated_py(&self) -> $crate::__private::String {
           self.to_hyphen_separated()
         }
 
         /// Converts to dot-separated string representation.
         #[pyo3(name = "to_dot_separated")]
-        #[cfg(any(feature = "alloc", feature = "std"))]
         fn __to_dot_separated_py(&self) -> $crate::__private::String {
           self.to_dot_separated()
         }
@@ -132,4 +131,13 @@ macro_rules! __addr_ty_pyo3 {
       }
     };
   };
+}
+
+#[cfg(not(feature = "pyo3"))]
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __addr_ty_pyo3 {
+  (
+    $name:ident[$n:expr]
+  ) => {};
 }

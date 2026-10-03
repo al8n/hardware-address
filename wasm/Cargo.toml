@@ -2,6 +2,7 @@
 name = "wasm"
 version = "0.2.0"
 edition = "2024"
+rust-version = "1.85"
 authors = ["Al Liu <scygliu1@gmail.com>"]
 description = "WebAssembly bindings for hardware-address: IEEE 802 MAC-48, EUI-48, EUI-64, and InfiniBand hardware addresses"
 license = "MIT OR Apache-2.0"

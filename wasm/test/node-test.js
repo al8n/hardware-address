@@ -62,7 +62,7 @@ assert(ib_hex.includes(':'), 'InfiniBand toString format');
 // Test error handling
 console.log('\n=== Testing Error Handling ===');
 try {
-  MacAddr48.parse("invalid");
+  MacAddr.parse("invalid");
   assert(false, 'Should throw error for invalid MAC-48');
 } catch (e) {
   assert(true, 'MAC-48 parse error handling');
@@ -70,7 +70,7 @@ try {
 
 try {
   const invalid_bytes = new Uint8Array([0x00, 0x11]); // Too short
-  MacAddr48.fromBytes(invalid_bytes);
+  MacAddr.fromBytes(invalid_bytes);
   assert(false, 'Should throw error for invalid byte length');
 } catch (e) {
   assert(true, 'MAC-48 fromBytes error handling');

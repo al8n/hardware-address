@@ -1,3 +1,4 @@
+#[cfg(feature = "wasm-bindgen")]
 #[doc(hidden)]
 #[macro_export]
 macro_rules! __addr_ty_wasm_bindgen {
@@ -8,7 +9,7 @@ macro_rules! __addr_ty_wasm_bindgen {
     const _: () = {
       use $crate::__private::wasm_bindgen::prelude::*;
 
-      #[wasm_bindgen]
+      #[wasm_bindgen(wasm_bindgen = $crate::__private::wasm_bindgen)]
       impl $name {
         /// Creates a zeroed address.
         #[wasm_bindgen(constructor)]
@@ -44,7 +45,6 @@ macro_rules! __addr_ty_wasm_bindgen {
 
         /// Converts to string representation.
         #[wasm_bindgen(js_name = "toString")]
-        #[cfg(any(feature = "alloc", feature = "std"))]
         #[doc(hidden)]
         pub fn __to_string_js(&self) -> $crate::__private::String {
           ::core::format_args!("{}", self).to_string()
@@ -52,7 +52,6 @@ macro_rules! __addr_ty_wasm_bindgen {
 
         /// Returns the address as bytes.
         #[wasm_bindgen(js_name = "toBytes")]
-        #[cfg(any(feature = "alloc", feature = "std"))]
         #[doc(hidden)]
         pub fn __to_bytes_js(&self) -> $crate::__private::Vec<::core::primitive::u8> {
           self.0.to_vec()
@@ -60,7 +59,6 @@ macro_rules! __addr_ty_wasm_bindgen {
 
         /// Converts to colon-separated format address.
         #[wasm_bindgen(js_name = "toColonSeparated")]
-        #[cfg(any(feature = "alloc", feature = "std"))]
         #[doc(hidden)]
         pub fn __to_colon_separated_js(&self) -> $crate::__private::String {
           self.to_colon_separated()
@@ -68,7 +66,6 @@ macro_rules! __addr_ty_wasm_bindgen {
 
         /// Converts to hyphen-separated format address.
         #[wasm_bindgen(js_name = "toHyphenSeparated")]
-        #[cfg(any(feature = "alloc", feature = "std"))]
         #[doc(hidden)]
         pub fn __to_hyphen_separated_js(&self) -> $crate::__private::String {
           self.to_hyphen_separated()
@@ -76,7 +73,6 @@ macro_rules! __addr_ty_wasm_bindgen {
 
         /// Converts to dot-separated format address.
         #[wasm_bindgen(js_name = "toDotSeparated")]
-        #[cfg(any(feature = "alloc", feature = "std"))]
         #[doc(hidden)]
         pub fn __to_dot_separated_js(&self) -> $crate::__private::String {
           self.to_dot_separated()
@@ -84,7 +80,6 @@ macro_rules! __addr_ty_wasm_bindgen {
 
         /// Converts to colon-separated format bytes.
         #[wasm_bindgen(js_name = "toColonSeparatedBytes")]
-        #[cfg(any(feature = "alloc", feature = "std"))]
         #[doc(hidden)]
         pub fn __to_colon_separated_array_js(
           &self,
@@ -94,7 +89,6 @@ macro_rules! __addr_ty_wasm_bindgen {
 
         /// Converts to hyphen-separated format bytes.
         #[wasm_bindgen(js_name = "toHyphenSeparatedBytes")]
-        #[cfg(any(feature = "alloc", feature = "std"))]
         #[doc(hidden)]
         pub fn __to_hyphen_separated_array_js(
           &self,
@@ -104,7 +98,6 @@ macro_rules! __addr_ty_wasm_bindgen {
 
         /// Converts to dot-separated format bytes.
         #[wasm_bindgen(js_name = "toDotSeparatedBytes")]
-        #[cfg(any(feature = "alloc", feature = "std"))]
         #[doc(hidden)]
         pub fn __to_dot_separated_array_js(&self) -> $crate::__private::Vec<::core::primitive::u8> {
           self.to_dot_separated_array().to_vec()
@@ -112,4 +105,14 @@ macro_rules! __addr_ty_wasm_bindgen {
       }
     };
   };
+}
+
+#[cfg(not(feature = "wasm-bindgen"))]
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __addr_ty_wasm_bindgen {
+  (
+    $(#[$attr:meta])*
+    $name:ident[$n:expr]
+  ) => {};
 }

@@ -1,5 +1,6 @@
-#[macro_export]
+#[cfg(feature = "quickcheck")]
 #[doc(hidden)]
+#[macro_export]
 macro_rules! __addr_ty_quickcheck {
   (
     $name:ident[$n:expr]
@@ -29,4 +30,13 @@ macro_rules! __addr_ty_quickcheck {
       }
     };
   };
+}
+
+#[cfg(not(feature = "quickcheck"))]
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __addr_ty_quickcheck {
+  (
+    $name:ident[$n:expr]
+  ) => {};
 }
