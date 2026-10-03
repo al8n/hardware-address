@@ -163,6 +163,21 @@ mod tests {
 
   #[cfg(feature = "serde")]
   #[test]
+  fn serde_human_readable_non_string_reports_expectation() {
+    let err = serde_json::from_str::<MacAddr>("42").unwrap_err();
+    assert!(std::format!("{}", err).contains("a colon-, hyphen-, or dot-separated address"));
+  }
+
+  #[cfg(feature = "serde")]
+  #[test]
+  fn serde_human_readable_from_reader() {
+    let addr: MacAddr =
+      serde_json::from_reader(std::io::Cursor::new(b"\"00:00:5e:00:53:01\"")).unwrap();
+    assert_eq!(addr.octets(), [0, 0, 94, 0, 83, 1]);
+  }
+
+  #[cfg(feature = "serde")]
+  #[test]
   fn serde_human_unreadable() {
     use serde_test::{assert_tokens, Configure, Token};
 
@@ -294,5 +309,14 @@ mod tests {
         .unwrap_or(false)
     }
     quickcheck::quickcheck(prop as fn(MacAddr) -> bool);
+  }
+
+  #[cfg(feature = "proptest")]
+  proptest::proptest! {
+    #[test]
+    fn proptest_arbitrary_round_trips(addr in proptest::arbitrary::any::<MacAddr>()) {
+      let parsed = MacAddr::try_from(std::format!("{}", addr).as_str()).unwrap();
+      proptest::prop_assert_eq!(parsed, addr);
+    }
   }
 }

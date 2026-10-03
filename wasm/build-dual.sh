@@ -22,11 +22,11 @@ rm -rf pkg-dual
 # the npm-side filenames would change to match, breaking every
 # consumer's `import 'hardware-address'`.
 echo "Building for bundler target (ESM)..."
-wasm-pack build --target bundler --release --out-dir pkg-dual --out-name hardware_address
+wasm-pack build --target bundler --release --out-dir pkg-dual --out-name hardware_address -- --locked
 
 # Build for nodejs (CommonJS) into a temporary directory
 echo "Building for Node.js target (CommonJS)..."
-wasm-pack build --target nodejs --release --out-dir pkg-nodejs-temp --out-name hardware_address
+wasm-pack build --target nodejs --release --out-dir pkg-nodejs-temp --out-name hardware_address -- --locked
 
 # Copy the Node.js specific files to a node subdirectory
 echo "Setting up dual package structure..."
@@ -80,6 +80,9 @@ cat > pkg-dual/package.json << EOF
     "LICENSE-MIT",
     "README.md"
   ],
+  "engines": {
+    "node": ">=22.14.0"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/al8n/hardware-address"

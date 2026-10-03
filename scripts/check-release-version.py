@@ -20,7 +20,7 @@ PACKAGE_MANIFESTS = {
 
 def cargo_package_versions() -> dict[str, str]:
     result = subprocess.run(
-        ["cargo", "metadata", "--no-deps", "--format-version", "1"],
+        ["cargo", "metadata", "--locked", "--format-version", "1"],
         check=True,
         cwd=ROOT,
         capture_output=True,

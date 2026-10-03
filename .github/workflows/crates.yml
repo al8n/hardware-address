@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*'
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -26,7 +27,7 @@ jobs:
           fi
       - name: Run prepublish checks
         run: |
-          cargo test -p hardware-address --locked
+          cargo test -p hardware-address --locked --all-features
           cargo package -p hardware-address --locked
           cargo publish -p hardware-address --locked --dry-run
 

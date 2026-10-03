@@ -9,12 +9,12 @@ without arguments and with the tag version before publishing.
 
 1. Set the workspace version to an RC such as `1.0.0-rc.1`, update
    `wasm/package.json`, and record the release candidate in `CHANGELOG.md`.
-2. Run the full CI and packaging checks, then create and push `v1.0.0-rc.1`.
-   npm prereleases publish under the `next` dist-tag; PyPI handles prereleases
-   according to its normal version semantics.
-3. After RC smoke checks succeed, replace the prerelease version with the stable
-   version, update the changelog, repeat the checks, and push the matching stable
-   tag.
+2. Run the full CI and packaging checks, create and push `v1.0.0-rc.1`, then
+   create a GitHub prerelease from that tag. Publish and smoke-test the RC on
+   crates.io, PyPI, and npm; npm prereleases publish under the `next` dist-tag.
+3. After all three registry smoke checks succeed, replace the prerelease version
+   with the stable version, update the changelog, repeat the checks, and push the
+   matching stable tag.
 
 ## crates.io trusted publishing
 
@@ -25,6 +25,20 @@ the `.github/workflows/crates.yml` workflow, and the GitHub environment named
 `rust-lang/crates-io-auth-action@v1`; its `crates-io` environment is the final
 publication gate. Manual dispatch performs verification only; publication is
 limited to pushed `v*` tags.
+
+## npm trusted publishing
+
+Configure npm trusted publishing for npm user `al8n`, repository
+`hardware-address`, and workflow `.github/workflows/wasm.yml`. Do not configure
+an npm environment unless the workflow is later updated to use one. The release
+job publishes the Node 24-tested artifact with npm 11.15.0 or later through OIDC;
+it does not use `NODE_AUTH_TOKEN`.
+
+## PyPI publishing
+
+The Python workflow still uses `PYPI_API_TOKEN`. Verify that token and its scope
+before each release, or separately migrate the workflow to PyPI trusted
+publishing; that migration is not part of this release process.
 
 ## Registry smoke checks
 

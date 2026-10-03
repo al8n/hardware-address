@@ -11,14 +11,13 @@ A fast, memory-safe library for working with hardware addresses, powered by Rust
 ## Installation
 
 ```bash
-pip install hardware_address
+pip install "hardware-address==1.0.0rc1"
 ```
 
 ## Features
 
 - 🚀 **Fast**: Native Rust implementation with Python bindings
 - 🔒 **Memory Safe**: Written in Rust for guaranteed memory safety
-- 🎯 **Type Safe**: Full type hints and IDE autocomplete support
 - 📦 **Zero Dependencies**: No external dependencies
 - 🔄 **Multiple Formats**: Parse and format addresses in colon, hyphen, or dot-separated formats
 
@@ -168,21 +167,6 @@ This library is implemented in Rust and compiled to native code, providing:
 - **Memory**: Zero-copy operations where possible
 - **Safety**: No buffer overflows or memory leaks
 
-## Type Hints
-
-Full type hints are included for IDE support:
-
-```python
-from hardware_address import MacAddr
-from typing import Dict
-
-def process_address(addr: MacAddr) -> bytes:
-    return bytes(addr)
-
-devices: Dict[MacAddr, str] = {}
-devices[MacAddr.parse("00:00:5e:00:53:01")] = "Server"
-```
-
 ## Platform Support
 
 Pre-built wheels are available for:
@@ -190,7 +174,7 @@ Pre-built wheels are available for:
 - **Linux**: x86_64, i686, aarch64, armv7
 - **macOS**: x86_64 (Intel), aarch64 (Apple Silicon)
 - **Windows**: x64, x86
-- **Python**: 3.8, 3.9, 3.10, 3.11, 3.12
+- **Python**: CPython 3.8 through 3.14
 
 ## License
 

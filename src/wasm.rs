@@ -8,6 +8,7 @@ macro_rules! __addr_ty_wasm_bindgen {
   ) => {
     const _: () = {
       use $crate::__private::wasm_bindgen::prelude::*;
+      use $crate::__private::ToString as __ToString;
 
       #[wasm_bindgen(wasm_bindgen = $crate::__private::wasm_bindgen)]
       impl $name {
@@ -23,31 +24,39 @@ macro_rules! __addr_ty_wasm_bindgen {
         #[doc(hidden)]
         pub fn __from_bytes_js(
           bytes: &[::core::primitive::u8],
-        ) -> ::core::result::Result<$name, JsError> {
+        ) -> ::core::result::Result<$name, $crate::__private::wasm_bindgen::JsError> {
           if bytes.len() != $n {
-            return Err(JsError::new(&format!(
-              "Expected {} bytes, got {}",
-              $n,
-              bytes.len()
-            )));
+            return ::core::result::Result::Err($crate::__private::wasm_bindgen::JsError::new(
+              &__ToString::to_string(&::core::format_args!(
+                "Expected {} bytes, got {}",
+                $n,
+                bytes.len()
+              )),
+            ));
           }
           let mut arr = [0u8; $n];
           arr.copy_from_slice(bytes);
-          Ok($name(arr))
+          ::core::result::Result::Ok($name(arr))
         }
 
         /// Parses an address from a string.
         #[wasm_bindgen(js_name = "parse")]
         #[doc(hidden)]
-        pub fn __parse_js(s: &::core::primitive::str) -> ::core::result::Result<$name, JsError> {
-          <$name as ::core::str::FromStr>::from_str(s).map_err(|e| JsError::new(&format!("{}", e)))
+        pub fn __parse_js(
+          s: &::core::primitive::str,
+        ) -> ::core::result::Result<$name, $crate::__private::wasm_bindgen::JsError> {
+          <$name as ::core::str::FromStr>::from_str(s).map_err(|e| {
+            $crate::__private::wasm_bindgen::JsError::new(&__ToString::to_string(
+              &::core::format_args!("{}", e),
+            ))
+          })
         }
 
         /// Converts to string representation.
         #[wasm_bindgen(js_name = "toString")]
         #[doc(hidden)]
         pub fn __to_string_js(&self) -> $crate::__private::String {
-          ::core::format_args!("{}", self).to_string()
+          __ToString::to_string(&::core::format_args!("{}", self))
         }
 
         /// Returns the address as bytes.

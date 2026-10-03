@@ -26,7 +26,7 @@ pip install pytest
 echo ""
 echo "Step 3: Building and installing package..."
 pip install maturin
-maturin develop --release
+maturin develop --release --locked
 
 # Run tests
 echo ""

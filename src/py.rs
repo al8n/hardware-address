@@ -9,8 +9,7 @@ macro_rules! __addr_ty_pyo3 {
     const _: () = {
       use $crate::__private::pyo3 as __pyo3;
       use $crate::__private::pyo3::prelude::*;
-      use $crate::__private::pyo3::types::PyBytes;
-      use $crate::__private::ToString;
+      use $crate::__private::ToString as __ToString;
 
       #[pymethods(crate = "__pyo3")]
       impl $name {
@@ -20,15 +19,22 @@ macro_rules! __addr_ty_pyo3 {
         }
 
         fn __str__(&self) -> $crate::__private::String {
-          ::core::format_args!("{}", self).to_string()
+          __ToString::to_string(&::core::format_args!("{}", self))
         }
 
         fn __repr__(&self) -> $crate::__private::String {
-          ::core::format_args!("{}(\"{}\")", ::core::stringify!($name), self).to_string()
+          __ToString::to_string(&::core::format_args!(
+            "{}(\"{}\")",
+            ::core::stringify!($name),
+            self
+          ))
         }
 
-        fn __bytes__<'py>(&self, py: $crate::__private::pyo3::Python<'py>) -> Bound<'py, PyBytes> {
-          PyBytes::new(py, &self.0)
+        fn __bytes__<'py>(
+          &self,
+          py: $crate::__private::pyo3::Python<'py>,
+        ) -> $crate::__private::pyo3::Bound<'py, $crate::__private::pyo3::types::PyBytes> {
+          $crate::__private::pyo3::types::PyBytes::new(py, &self.0)
         }
 
         fn __hash__(&self) -> u64 {
@@ -59,9 +65,9 @@ macro_rules! __addr_ty_pyo3 {
         fn __to_colon_separated_array_py<'py>(
           &self,
           py: $crate::__private::pyo3::Python<'py>,
-        ) -> Bound<'py, PyBytes> {
+        ) -> $crate::__private::pyo3::Bound<'py, $crate::__private::pyo3::types::PyBytes> {
           let buf = self.to_colon_separated_array();
-          PyBytes::new(py, &buf)
+          $crate::__private::pyo3::types::PyBytes::new(py, &buf)
         }
 
         /// Converts to hyphen-separated format bytes.
@@ -69,9 +75,9 @@ macro_rules! __addr_ty_pyo3 {
         fn __to_hyphen_separated_array_py<'py>(
           &self,
           py: $crate::__private::pyo3::Python<'py>,
-        ) -> Bound<'py, PyBytes> {
+        ) -> $crate::__private::pyo3::Bound<'py, $crate::__private::pyo3::types::PyBytes> {
           let buf = self.to_hyphen_separated_array();
-          PyBytes::new(py, &buf)
+          $crate::__private::pyo3::types::PyBytes::new(py, &buf)
         }
 
         /// Converts to dot-separated format bytes.
@@ -79,9 +85,9 @@ macro_rules! __addr_ty_pyo3 {
         fn __to_dot_separated_array_py<'py>(
           &self,
           py: $crate::__private::pyo3::Python<'py>,
-        ) -> Bound<'py, PyBytes> {
+        ) -> $crate::__private::pyo3::Bound<'py, $crate::__private::pyo3::types::PyBytes> {
           let buf = self.to_dot_separated_array();
-          PyBytes::new(py, &buf)
+          $crate::__private::pyo3::types::PyBytes::new(py, &buf)
         }
 
         /// Converts to colon-separated string representation.
@@ -108,25 +114,29 @@ macro_rules! __addr_ty_pyo3 {
         #[cfg_attr(docsrs, doc(hidden))]
         fn __parse_py(s: &::core::primitive::str) -> $crate::__private::pyo3::PyResult<Self> {
           <$name as ::core::str::FromStr>::from_str(s).map_err(|e| {
-            $crate::__private::pyo3::exceptions::PyValueError::new_err(
-              ::core::format_args!("{}", e).to_string(),
-            )
+            $crate::__private::pyo3::exceptions::PyValueError::new_err(__ToString::to_string(
+              &::core::format_args!("{}", e),
+            ))
           })
         }
 
         /// Create an address from bytes.
         #[staticmethod]
         #[pyo3(name = "from_bytes")]
-        fn __from_bytes(bytes: &Bound<'_, PyBytes>) -> $crate::__private::pyo3::PyResult<Self> {
+        fn __from_bytes(
+          bytes: &$crate::__private::pyo3::Bound<'_, $crate::__private::pyo3::types::PyBytes>,
+        ) -> $crate::__private::pyo3::PyResult<Self> {
           let data = bytes.as_bytes();
           if data.len() != $n {
-            return Err($crate::__private::pyo3::exceptions::PyValueError::new_err(
-              format!("Expected {} bytes, got {}", $n, data.len()),
-            ));
+            return ::core::result::Result::Err(
+              $crate::__private::pyo3::exceptions::PyValueError::new_err(__ToString::to_string(
+                &::core::format_args!("Expected {} bytes, got {}", $n, data.len()),
+              )),
+            );
           }
           let mut arr = [0u8; $n];
           arr.copy_from_slice(data);
-          Ok($name(arr))
+          ::core::result::Result::Ok($name(arr))
         }
       }
     };

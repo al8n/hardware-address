@@ -2,6 +2,8 @@
 
 IEEE 802 MAC-48, EUI-48, EUI-64, and InfiniBand hardware addresses for WebAssembly.
 
+Requires Node.js 22.14.0 or later.
+
 [![npm version](https://img.shields.io/npm/v/hardware-address.svg)](https://www.npmjs.com/package/hardware-address)
 [![License](https://img.shields.io/badge/License-Apache%202.0%2FMIT-blue.svg)](https://github.com/al8n/hardware-address)
 

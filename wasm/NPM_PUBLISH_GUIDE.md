@@ -2,11 +2,9 @@
 
 ## Prerequisites
 
-1. Install wasm-pack:
+1. Install wasm-pack 0.15.0:
 ```bash
-curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-# Or via cargo:
-cargo install wasm-pack
+cargo install wasm-pack --version 0.15.0 --locked
 ```
 
 2. Login to npm:
@@ -52,11 +50,14 @@ console.log(addr.toString());
 
 ## Publishing to npm
 
-Once tested, publish from the `pkg` directory:
+Once tested, publish from the `pkg` directory. Release candidates use the
+`next` dist-tag:
 
 ```bash
 cd pkg
 npm publish
+# For a prerelease such as 1.0.0-rc.1:
+npm publish --tag next
 ```
 
 ## Publishing with GitHub Actions (Automated)
@@ -65,20 +66,13 @@ The repository includes a GitHub Actions workflow for automated publishing.
 
 ### Setup:
 
-1. Get your npm token:
-   - Go to https://www.npmjs.com/settings/YOUR_USERNAME/tokens
-   - Click "Generate New Token" → "Classic Token"
-   - Select "Automation"
-   - Copy the token
+1. Configure npm trusted publishing for user `al8n`, repository
+   `hardware-address`, and workflow `.github/workflows/wasm.yml`. Do not set an
+   npm trusted-publisher environment unless the GitHub workflow is later updated
+   to use one. The workflow uses GitHub OIDC and does not require `NPM_TOKEN` or
+   a classic token.
 
-2. Add to GitHub Secrets:
-   - Go to your repository on GitHub
-   - Settings → Secrets and variables → Actions
-   - Click "New repository secret"
-   - Name: `NPM_TOKEN`
-   - Paste your token
-
-3. Create a release:
+2. Create a release:
    - Create and push a matching git tag, for example: `git tag v1.0.0-rc.1 && git push --tags`
    - Create a GitHub release from that tag
    - The workflow will automatically build and publish to npm
@@ -103,13 +97,13 @@ After building, the `pkg/` directory contains:
 1. Update the root `[workspace.package]` version and `wasm/package.json` together
 2. Run `./build-npm.sh`
 3. Test the package
-4. Publish: `cd pkg && npm publish`
+4. Publish: `cd pkg && npm publish` (or `npm publish --tag next` for a prerelease)
 
 ## Troubleshooting
 
 ### Build fails
 - Ensure wasm32 target is installed: `rustup target add wasm32-unknown-unknown`
-- Update wasm-pack: `cargo install wasm-pack --force`
+- Update wasm-pack: `cargo install wasm-pack --version 0.15.0 --locked --force`
 
 ### "wasm-opt" errors
 The release profile currently uses `wasm-opt = ["-O4"]`. Install a compatible
