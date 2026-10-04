@@ -18,6 +18,10 @@ fi
 endpoint="repos/${GITHUB_REPOSITORY:?GITHUB_REPOSITORY is required}/releases/tags/${tag}"
 expected_assets=("Cargo.lock" "Cargo.lock.sha256")
 download_dir="$tmpdir/download"
+expected_prerelease=false
+if [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-.+$ ]]; then
+  expected_prerelease=true
+fi
 mkdir -p "$download_dir"
 
 release_assets() {
@@ -31,6 +35,10 @@ validate_draft_release() {
   fi
   if [[ "$("$jq_bin" -r '.draft' <<<"$release_json")" != "true" ]]; then
     echo "refusing to alter published release $tag" >&2
+    exit 1
+  fi
+  if [[ "$("$jq_bin" -r '.prerelease' <<<"$release_json")" != "$expected_prerelease" ]]; then
+    echo "draft release $tag has an unexpected prerelease state" >&2
     exit 1
   fi
 }
@@ -84,7 +92,7 @@ else
     cat "$tmpdir/release-error" >&2
     exit 1
   fi
-  if [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-.+$ ]]; then
+  if [[ "$expected_prerelease" == true ]]; then
     "$gh_bin" release create "$tag" --verify-tag --draft --prerelease --latest=false \
       --title "$tag" --notes "Generated Cargo.lock provenance assets."
   else
