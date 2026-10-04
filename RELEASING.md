@@ -42,13 +42,14 @@ first successful RC publication through trusted publishing.
 
 CI invokes `scripts/generate-lockfiles.sh --rust-1.85` with Cargo 1.85.0 and
 the resolver fallback policy. Local helpers use the caller's Cargo when they
-need to regenerate an ignored lock. Tag workflows compare the canonical
-SHA-256 against
-`.release/cargo-lock.json`, then stage `Cargo.lock` and `Cargo.lock.sha256` on
-the draft release. Future release-preparation PRs update that small provenance
-file rather than committing a lockfile. crates.io still includes Cargo's
-automatically generated minimized lockfile in the published `.crate`; it does
-not come from repository tracking.
+need to regenerate an ignored lock. `.release/cargo-lock.json` records the
+exact Cargo.lock asset of the current published release; its SHA-256 is not a
+development-lock checksum. A release-preparation PR must update its version and
+SHA-256 from the newly generated candidate lock before a matching tag is pushed.
+Tag workflows compare that candidate against the provenance file, then stage
+`Cargo.lock` and `Cargo.lock.sha256` on the draft release. crates.io still
+includes Cargo's automatically generated minimized lockfile in the published
+`.crate`; it does not come from repository tracking.
 
 ## Registry smoke checks
 

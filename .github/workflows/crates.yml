@@ -47,6 +47,8 @@ jobs:
           path: .
       - name: Verify lock artifact
         run: scripts/verify-lock-artifacts.sh
+      - name: Test release lock staging
+        run: scripts/test-stage-release-lock.sh
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
       - name: Verify release version
