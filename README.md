@@ -23,7 +23,7 @@ IEEE 802 MAC-48, EUI-48, EUI-64, or a 20-octet IP over InfiniBand link-layer add
 
 ```toml
 [dependencies]
-hardware-address = "1.0.0"
+hardware-address = "1"
 ```
 
 **Optional features:**
