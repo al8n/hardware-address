@@ -9,6 +9,8 @@
 
 # Added by cargo
 /target
+/Cargo.lock
+/tests/fixtures/custom-address/Cargo.lock
 
 # WASM build output
 /wasm/pkg/

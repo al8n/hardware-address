@@ -6,6 +6,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 echo "Building hardware-address dual package for npm..."
 cd "$SCRIPT_DIR"
+"$SCRIPT_DIR/ensure-lockfile.sh"
 PACKAGE_VERSION="$(node -p "require('./package.json').version")"
 
 # Clean previous builds

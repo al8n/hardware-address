@@ -6,6 +6,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 echo "Building hardware-address WASM for Node.js testing..."
 cd "$SCRIPT_DIR"
+"$SCRIPT_DIR/ensure-lockfile.sh"
 
 # Build for Node.js target. `--out-name hardware_address` keeps the
 # output filenames stable across changes to the crate's `[lib] name`

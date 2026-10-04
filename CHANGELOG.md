@@ -1,5 +1,10 @@
 # UNRELEASED
 
+### Infrastructure
+
+- Moved generated Cargo.lock files out of repository tracking while preserving
+  locked CI, package, and release-asset verification.
+
 ## 1.0.0 (4th Oct, 2026)
 
 ### Release
