@@ -6,6 +6,9 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 echo "Building and testing hardware-address Python package..."
 cd "$SCRIPT_DIR"
+if [ ! -f "$SCRIPT_DIR/../Cargo.lock" ]; then
+  "$SCRIPT_DIR/../scripts/generate-lockfiles.sh"
+fi
 
 # Check if we're in a virtual environment, if not create one
 if [ -z "$VIRTUAL_ENV" ] && [ -z "$CONDA_PREFIX" ]; then

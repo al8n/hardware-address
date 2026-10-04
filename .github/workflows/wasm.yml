@@ -15,20 +15,57 @@ permissions:
 jobs:
   version:
     name: Verify release metadata
+    needs: prepare-lock
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: cargo-lock
+          path: .
+      - name: Verify lock artifact
+        run: scripts/verify-lock-artifacts.sh
       - run: python3 scripts/check-release-version.py
+
+  prepare-lock:
+    name: Prepare Cargo.lock
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install Rust 1.85.0
+        uses: dtolnay/rust-toolchain@1.85.0
+      - name: Enforce lockfile policy
+        run: scripts/check-lockfile-policy.sh
+      - name: Generate lockfile
+        run: scripts/generate-lockfiles.sh --rust-1.85
+      - name: Verify lock provenance
+        run: |
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            python3 scripts/check-release-lock.py --release --expected-version "${GITHUB_REF_NAME#v}"
+          else
+            python3 scripts/check-release-lock.py
+          fi
+      - uses: actions/upload-artifact@v7
+        with:
+          name: cargo-lock
+          path: Cargo.lock
+          if-no-files-found: error
 
   test:
     name: Test WASM Package (Node ${{ matrix.node }})
-    needs: version
+    needs: [version, prepare-lock]
     runs-on: ubuntu-latest
     strategy:
       matrix:
         node: [22, 24]
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: cargo-lock
+          path: .
+      - name: Verify lock artifact
+        run: scripts/verify-lock-artifacts.sh
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -64,13 +101,19 @@ jobs:
 
   build-targets:
     name: Build WASM for Different Targets
-    needs: version
+    needs: [version, prepare-lock]
     runs-on: ubuntu-latest
     strategy:
       matrix:
         target: [bundler, nodejs, web]
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: cargo-lock
+          path: .
+      - name: Verify lock artifact
+        run: scripts/verify-lock-artifacts.sh
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -101,12 +144,18 @@ jobs:
     runs-on: ubuntu-latest
     environment: npm
     if: ${{ startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch' }}
-    needs: [version, test, build-targets]
+    needs: [version, prepare-lock, test, build-targets]
     permissions:
       contents: read
       id-token: write
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: cargo-lock
+          path: .
+      - name: Verify lock artifact
+        run: scripts/verify-lock-artifacts.sh
 
       - name: Verify release version
         run: |

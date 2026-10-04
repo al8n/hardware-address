@@ -30,6 +30,10 @@
     "node": ">=22.14.0"
   },
   "scripts": {
+    "prebuild": "cargo generate-lockfile",
+    "prebuild:node": "cargo generate-lockfile",
+    "prebuild:web": "cargo generate-lockfile",
+    "pretest": "cargo generate-lockfile",
     "build": "wasm-pack build --target bundler --features wasm-bindgen --release --out-name hardware_address -- --locked",
     "build:node": "wasm-pack build --target nodejs --features wasm-bindgen --release --out-dir pkg-node --out-name hardware_address -- --locked",
     "build:web": "wasm-pack build --target web --features wasm-bindgen --release --out-dir pkg-web --out-name hardware_address -- --locked",

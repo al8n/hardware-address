@@ -33,11 +33,44 @@ env:
 jobs:
   version:
     name: version
+    needs: prepare-locks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: cargo-lockfiles
+          path: .
+      - name: Verify lock artifacts
+        run: scripts/verify-lock-artifacts.sh --fixture
       - name: Verify release metadata
         run: python3 scripts/check-release-version.py
+
+  prepare-locks:
+    name: Prepare generated lockfiles
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install Rust 1.85.0
+        uses: dtolnay/rust-toolchain@1.85.0
+      - name: Enforce lockfile policy
+        run: scripts/check-lockfile-policy.sh
+      - name: Generate root and fixture lockfiles
+        run: scripts/generate-lockfiles.sh --rust-1.85 --fixture
+      - name: Verify lock provenance
+        run: |
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            python3 scripts/check-release-lock.py --release --expected-version "${GITHUB_REF_NAME#v}"
+          else
+            python3 scripts/check-release-lock.py
+          fi
+      - uses: actions/upload-artifact@v7
+        with:
+          name: cargo-lockfiles
+          path: |
+            Cargo.lock
+            tests/fixtures/custom-address/Cargo.lock
+          if-no-files-found: error
 
   # Check formatting
   rustfmt:
@@ -61,6 +94,7 @@ jobs:
   # Apply clippy lints
   clippy:
     name: clippy
+    needs: prepare-locks
     strategy:
       matrix:
         os:
@@ -70,6 +104,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v7
+    - uses: actions/download-artifact@v8
+      with:
+        name: cargo-lockfiles
+        path: .
+    - name: Verify lock artifacts
+      shell: bash
+      run: scripts/verify-lock-artifacts.sh --fixture
     - name: Install Rust
       # --no-self-update is necessary because the windows environment cannot self-update rustup.exe.
       run: rustup update stable --no-self-update && rustup default stable
@@ -81,6 +122,7 @@ jobs:
   # Run tests on some extra platforms
   cross:
     name: cross
+    needs: prepare-locks
     strategy:
       matrix:
         target:
@@ -103,6 +145,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: cargo-lockfiles
+          path: .
+      - name: Verify lock artifacts
+        shell: bash
+        run: scripts/verify-lock-artifacts.sh --fixture
       - name: Cache cargo build and registry
         uses: actions/cache@v6
         with:
@@ -122,6 +171,7 @@ jobs:
 
   build:
     name: build
+    needs: prepare-locks
     strategy:
       matrix:
         os:
@@ -131,6 +181,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v7
+    - uses: actions/download-artifact@v8
+      with:
+        name: cargo-lockfiles
+        path: .
+    - name: Verify lock artifacts
+      shell: bash
+      run: scripts/verify-lock-artifacts.sh --fixture
     - name: Cache cargo build and registry
       uses: actions/cache@v6
       with:
@@ -156,6 +213,7 @@ jobs:
   
   test:
     name: test
+    needs: prepare-locks
     strategy:
       matrix:
         os:
@@ -165,6 +223,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v7
+    - uses: actions/download-artifact@v8
+      with:
+        name: cargo-lockfiles
+        path: .
+    - name: Verify lock artifacts
+      shell: bash
+      run: scripts/verify-lock-artifacts.sh --fixture
     - name: Cache cargo build and registry
       uses: actions/cache@v6
       with:
@@ -190,9 +255,17 @@ jobs:
 
   msrv:
     name: msrv
+    needs: prepare-locks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: cargo-lockfiles
+          path: .
+      - name: Verify lock artifacts
+        shell: bash
+        run: scripts/verify-lock-artifacts.sh --fixture
       - name: Install Rust 1.85.0
         run: rustup toolchain install 1.85.0 --profile minimal
       - name: Check without default features
@@ -202,9 +275,17 @@ jobs:
 
   no_std:
     name: no_std
+    needs: prepare-locks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: cargo-lockfiles
+          path: .
+      - name: Verify lock artifacts
+        shell: bash
+        run: scripts/verify-lock-artifacts.sh --fixture
       - name: Install Rust 1.85.0 and target
         run: |
           rustup toolchain install 1.85.0 --profile minimal
@@ -218,9 +299,17 @@ jobs:
 
   public-macro:
     name: public-macro
+    needs: prepare-locks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: cargo-lockfiles
+          path: .
+      - name: Verify lock artifacts
+        shell: bash
+        run: scripts/verify-lock-artifacts.sh --fixture
       - name: Install Rust
         run: rustup update stable --no-self-update && rustup default stable
       - name: Install wasm32 target
@@ -249,8 +338,16 @@ jobs:
       - no_std
       - public-macro
       - version
+      - prepare-locks
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: cargo-lockfiles
+          path: .
+      - name: Verify lock artifacts
+        shell: bash
+        run: scripts/verify-lock-artifacts.sh --fixture
       - name: Install Rust
         run: rustup update nightly && rustup default nightly
       - name: Install cargo-llvm-cov

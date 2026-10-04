@@ -12,6 +12,7 @@ echo "WASM directory: $SCRIPT_DIR"
 
 # Build from wasm directory
 cd "$SCRIPT_DIR"
+"$SCRIPT_DIR/ensure-lockfile.sh"
 
 # Build for bundler (default for npm). `--out-name hardware_address`
 # makes the output files match the npm package's consumer-facing name
