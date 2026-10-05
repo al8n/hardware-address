@@ -399,4 +399,4 @@ jobs:
           disable_search: true
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: ${{ github.repository }}
-          fail_ci_if_error: true
+          fail_ci_if_error: false
