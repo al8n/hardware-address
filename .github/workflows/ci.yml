@@ -394,9 +394,8 @@ jobs:
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v7
         with:
-          use_pypi: true
           files: lcov.info
           disable_search: true
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: ${{ github.repository }}
-          fail_ci_if_error: false
+          fail_ci_if_error: true
