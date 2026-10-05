@@ -33,7 +33,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Install Rust 1.85.0
-        uses: dtolnay/rust-toolchain@1.85.0
+        uses: dtolnay/rust-toolchain@1.120.0
       - name: Enforce lockfile policy
         run: scripts/check-lockfile-policy.sh
       - name: Generate lockfile
